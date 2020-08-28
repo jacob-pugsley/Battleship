@@ -4,4 +4,4 @@
 [3] Update model to manage ship damage and return data to the view\
 [4] Update grid to display hit/miss/sunk information
 
-# Resolved Issues
+# Resolved Issues 

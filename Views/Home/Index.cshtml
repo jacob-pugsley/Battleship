@@ -1,8 +1,18 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
+@section scripts
+{
+    <script src="~/js/index.js" type="text/javascript"></script>
+    <script>
+        $(document).ready(function () {
+            initGrid(document.getElementById("gridCanvas"))
+        });
+    </script>
+}
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <canvas id="gridCanvas" width="640" height="480">
+        <p>Your browser doesn't support this feature! Please update to the latest version of Chrome or Firefox.</p>
+    </canvas>
 </div>

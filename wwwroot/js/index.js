@@ -1,12 +1,11 @@
 ﻿
-
 /* Initialize the main grid.
  * Standard battleship is 10x10 with an extra space for labels.
  */
 function initGrid(gridCanvas) {
     if (gridCanvas.getContext) {
         //draw
-        let gridSize = 11;
+        var gridSize = 11;
 
         let gridWidth = gridCanvas.width / gridSize;
         let gridHeight = gridCanvas.height / gridSize;
@@ -54,4 +53,36 @@ function initGrid(gridCanvas) {
         console.log("canvas error")
     }
 
+}
+
+/* Return the grid square at the given position.
+ * 
+ */
+function getGridSquareAt(gridCanvasId, x, y) {
+
+    let gridSize = 11
+
+    let canvas = $("#" + gridCanvasId)
+
+    let gridWidth = canvas.width() / gridSize;
+    let gridHeight = canvas.height() / gridSize;
+
+    let canvasX = x - canvas.offset().left
+    let canvasY = y - canvas.offset().top
+
+    let gridX = Math.trunc(canvasX / gridWidth)
+    let gridY = Math.trunc(canvasY / gridHeight)
+
+
+
+    return {
+        "gridX": String.fromCharCode(64 + gridX),
+        "gridY": "" + gridY
+    }
+}
+
+function fire(gridCanvasId, x, y) {
+    let grid = getGridSquareAt(gridCanvasId, x, y)
+
+    alert("firing on " + grid.gridX + grid.gridY)
 }

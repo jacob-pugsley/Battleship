@@ -20,7 +20,8 @@ namespace Battleship.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            BattleshipModel bm = new BattleshipModel(11);
+            return View(bm);
         }
 
         public IActionResult Privacy()

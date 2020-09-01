@@ -81,3 +81,34 @@ function getGridSquareAt(gridCanvasId, x, y) {
     }
 }
 
+/* Mark the locations of enemy ships for testing.
+ */
+function drawShips(canvas, shipList) {
+    let gridSize = 11
+    if (canvas.getContext) {
+        let gridWidth = canvas.width / gridSize
+        let gridHeight = canvas.height / gridSize
+
+        let context = canvas.getContext("2d")
+        //get size of marker
+        let textWidth = context.measureText("+").width
+
+        console.log(context)
+
+        for (ship in shipList) {
+            console.log(ship)
+            for (p in shipList[ship]["HitPoints"]) {
+               
+                let point = shipList[ship]["HitPoints"][p]
+                console.log(point)
+                let x = (point[0] * gridWidth) + (0.5 * (gridWidth - textWidth));
+                let y = (point[1] + 1) * gridHeight
+
+                context.fillText("+", x, y)
+            }
+        }
+    } else {
+        console.log("canvas error")
+    }
+}
+

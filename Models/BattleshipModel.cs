@@ -68,7 +68,7 @@ namespace Battleship.Models
                     //to fit the ship, starting at the initial random position
                     for( int i = 0; i < hitPoints; i++)
                     {
-                        if( grid[x, y] != 0)
+                        if( grid[y, x] != 0)
                         {
                             valid = false;
                             break;
@@ -113,7 +113,7 @@ namespace Battleship.Models
             {
                 for( int j = 0; j < grid.GetLength(1); j++)
                 {
-                    Console.Write(grid[i, j] + " ");
+                    Console.Write(grid[j, i] + " ");
                 }
                 Console.WriteLine();
             }

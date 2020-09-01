@@ -7,6 +7,11 @@
     <script>
         $(document).ready(function () {
             initGrid(document.getElementById("gridCanvas"))
+            $.post("/Home/Attack", function (data) {
+                let result = JSON.parse(data);
+                let shipList = result.board
+                drawShips(document.getElementById("gridCanvas"), shipList)
+            })
         });
 
         function fire(gridCanvasId, x, y) {
@@ -36,7 +41,6 @@
                 let result = JSON.parse(data);
 
                 //check for hit or miss
-                console.log(typeof result.hit, result.hit)
                 if (result.hit == 1) {
                     $("#resultsH2").text("Hit!")
                 } else {

@@ -28,6 +28,25 @@ function initGrid(gridCanvas) {
         }
         context.stroke()
 
+        //draw alternate background color on outer grids
+        let fill = context.fillStyle
+        context.fillStyle = "#ffffff"
+        for (let i = 0; i < gridSize; i++) {
+            let x = i * gridWidth
+            let y = 0
+            context.fillRect(x, y, gridWidth, gridHeight)
+            context.strokeRect(x, y, gridWidth, gridHeight)
+
+            if (i > 0) {
+                x = 0
+                y = i * gridHeight
+                context.fillRect(x, y, gridWidth, gridHeight)
+                context.strokeRect(x, y, gridWidth, gridHeight)
+            }
+        }
+        context.fillStyle = fill
+
+            
         //draw letter labels on top row
         let code = 65 //start at capital A
         context.font = "48px serif"

@@ -133,7 +133,6 @@ function drawShips(canvas, shipList) {
 function drawMarker(canvas, x, y, hexColor) {
     if (canvas.getContext) {
         let context = canvas.getContext("2d")
-        console.log(hexColor)
 
         let gridWidth = canvas.width / 11
         let gridHeight = canvas.height / 11

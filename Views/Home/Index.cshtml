@@ -27,7 +27,7 @@
                 statusTable.removeChild(statusTable.lastChild)
             }
 
-
+            let allSunk = true
             for (i in shipList) {
                 let tr = document.createElement("tr")
                 let td = document.createElement("td")
@@ -37,37 +37,22 @@
                 if (shipList[i].Sunk == true) {
                     td.innerHTML = "Sunk"
                 } else {
+                    allSunk = false
                     td.innerHTML = "Not sunk"
                 }
                 tr.appendChild(td)
 
                 statusTable.appendChild(tr)
             }
+
+            if (allSunk) {
+                $("#resultsH2").text("Victory!")
+            }
         }
 
         function fire(gridCanvasId, x, y) {
             let grid = getGridSquareAt(gridCanvasId, x, y)
-            /*
-            $.post("/Home/Test", function (data) {
-                ships = JSON.parse(data)
-                console.log(ships)
 
-                for (k in Object.keys(ships)) {
-                    for (p in Object.keys(ships[k]["HitPoints"])) {
-                        let point = ships[k]["HitPoints"][p];
-                        if (point[0] == grid.gridX && point[1] == grid.gridY) {
-                            if (ships["DamageIndex"][p]) {
-                                $("#resultsH2").html = "Already damaged."
-                            } else {
-                                $("#resultsH2").html = "Hit!"
-                            }
-                            return;
-                        }
-                    }
-                }
-                $("#resultsH2").html = "Miss."
-            })
-            */
             $.post("/Home/Attack?x=" + grid.gridX + "&y=" + grid.gridY, function (data) {
                 let result = JSON.parse(data);
 

@@ -13,8 +13,38 @@
                 let result = JSON.parse(data);
                 let shipList = result.board
                 drawShips(document.getElementById("gridCanvas"), shipList)
+
+               updateSunk(shipList)
+
             })
         });
+
+        function updateSunk(shipList) {
+            console.log(shipList)
+            let statusTable = document.getElementById("targetStatusTable")
+
+            //remove all but the first child of table
+            while (statusTable.childElementCount > 1) {
+                statusTable.removeChild(statusTable.lastChild)
+            }
+
+
+            for (i in shipList) {
+                let tr = document.createElement("tr")
+                let td = document.createElement("td")
+                td.innerHTML = shipList[i].Name
+                tr.appendChild(td)
+                td = document.createElement("td")
+                if (shipList[i].Sunk == true) {
+                    td.innerHTML = "Sunk"
+                } else {
+                    td.innerHTML = "Not sunk"
+                }
+                tr.appendChild(td)
+
+                statusTable.appendChild(tr)
+            }
+        }
 
         function fire(gridCanvasId, x, y) {
             let grid = getGridSquareAt(gridCanvasId, x, y)
@@ -48,7 +78,11 @@
                 } else {
                     $("#resultsH2").text("Miss.")
                 }
+
+                updateSunk(result.board)
             })
+
+            
         }
     </script>
 }
@@ -60,4 +94,13 @@
     </canvas>
 
     <h2 id="resultsH2">Click on the grid to attack!</h2>
+    
+    <br />
+    <br />
+
+    <table id="targetStatusTable" style="margin: auto; width: 50%;">
+        <tr>
+            <td><b>Target Name</b></td><td><b>Status</b></td>
+        </tr>
+    </table>
 </div>

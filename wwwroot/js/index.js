@@ -112,14 +112,11 @@ function drawShips(canvas, shipList) {
         //get size of marker
         let textWidth = context.measureText("+").width
 
-        console.log(context)
-
         for (ship in shipList) {
-            console.log(ship)
             for (p in shipList[ship]["HitPoints"]) {
                
                 let point = shipList[ship]["HitPoints"][p]
-                console.log(point)
+                
                 let x = (point[0] * gridWidth) + (0.5 * (gridWidth - textWidth));
                 let y = (point[1] + 1) * gridHeight
 

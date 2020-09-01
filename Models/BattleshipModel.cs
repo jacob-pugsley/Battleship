@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -120,6 +121,52 @@ namespace Battleship.Models
 
         }
 
+        /* Check if any ship has been hit or sunk.
+         * Sets the sunk property of a hit ship to true as appropriate.
+         */
+        public static bool isHit(Ship[] ships, int x, int y)
+        {
+            bool exit = false;
+            bool hit = false;
+            foreach (Ship s in ships)
+            {
+                for (int i = 0; i < s.HitPoints.GetLength(0); i++)
+                {
+                    if (s.HitPoints[i][0] == x && s.HitPoints[i][1] == y)
+                    {
+                        if (!s.DamageIndex[i])
+                        {
+                            s.DamageIndex[i] = true;
+                            if( isSunk(s))
+                            {
+                                s.Sunk = true;
+                            }
+                            hit = true;
+                        }
+                        exit = true;
+                        break;
+                    }
+                }
+                if (exit)
+                {
+                    break;
+                }
+            }
+            return hit;
+        }
+
+        private static bool isSunk(Ship s)
+        {
+            for( int i = 0; i < s.DamageIndex.GetLength(0); i++)
+            {
+                if( s.DamageIndex[i] == false)
+                {
+                    return false;
+                }
+            }
+            return true;
+        } 
+
         /* Return the ship list as a string
          */
         public string asString()
@@ -148,6 +195,8 @@ namespace Battleship.Models
         public string Name { get; set; }
         public int[][] HitPoints { get; set; }
         public bool[] DamageIndex { get; set; }
+
+        public bool Sunk { get; set; }
 
     }
 }

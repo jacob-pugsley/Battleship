@@ -99,7 +99,7 @@ namespace Battleship.Models
                     {
                         for(int i = 0; i < test.GetLength(0); i++)
                         {
-                            grid[test[i][0], test[i][1]] = label;
+                            grid[test[i][1], test[i][0]] = label;
                         }
                         label++;
                         s.HitPoints = test;

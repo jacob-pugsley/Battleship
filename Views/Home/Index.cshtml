@@ -8,6 +8,25 @@
         $(document).ready(function () {
             initGrid(document.getElementById("gridCanvas"))
         });
+
+        function fire(gridCanvasId, x, y) {
+            let grid = getGridSquareAt(gridCanvasId, x, y)
+            $.post("/Home/Test", function (data) {
+                ships = JSON.parse(data)
+                console.log(ships)
+
+                for (k in Object.keys(ships)) {
+                    for (p in Object.keys(ships[k]["HitPoints"])) {
+                        let point = ships[k]["HitPoints"][p];
+                        if (point[0] == grid.gridX && point[1] == grid.gridY) {
+                            alert("Hit!")
+                            return;
+                        }
+                    }
+                }
+                alert("Miss.")
+            })
+        }
     </script>
 }
 @model BattleshipModel

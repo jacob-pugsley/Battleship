@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Battleship.Models
@@ -44,7 +46,7 @@ namespace Battleship.Models
                     int orientation = rand.Next(0, 2);
 
                     
-                    int[,] test = new int[hitPoints, 2];
+                    int[][] test = new int[hitPoints][];
                     bool valid = true;
 
                     //check if there are enough empty spaces in the direction of the orientation
@@ -58,8 +60,11 @@ namespace Battleship.Models
                         }
                         else
                         {
-                            test[i, 0] = x;
-                            test[i, 1] = y;
+                            int[] tmp = new int[2];
+                            tmp[0] = x;
+                            tmp[1] = y;
+
+                            test[i] = tmp;
                         }
 
                         if( orientation == 0)
@@ -79,7 +84,7 @@ namespace Battleship.Models
                     {
                         for(int i = 0; i < test.GetLength(0); i++)
                         {
-                            grid[test[i, 0], test[i, 1]] = label;
+                            grid[test[i][0], test[i][1]] = label;
                         }
                         label++;
                         s.HitPoints = test;
@@ -100,6 +105,13 @@ namespace Battleship.Models
 
 
         }
+
+        /* Return the ship list as a string
+         */
+        public string asString()
+        {
+            return JsonSerializer.Serialize(ships);
+        }
     }
 
     /* Represents a ship with base location and
@@ -113,11 +125,11 @@ namespace Battleship.Models
             Name = name;
 
             //list of hit point grid locations
-            HitPoints = new int[hitPoints, 2];
+            HitPoints = new int[hitPoints][];
         }
 
         public string Name { get; }
-        public int[,] HitPoints { get; set; }
+        public int[][] HitPoints { get; set; }
 
     }
 }

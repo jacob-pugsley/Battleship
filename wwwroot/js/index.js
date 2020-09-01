@@ -76,13 +76,8 @@ function getGridSquareAt(gridCanvasId, x, y) {
 
 
     return {
-        "gridX": String.fromCharCode(64 + gridX),
-        "gridY": "" + gridY
+        "gridX": gridX,
+        "gridY": gridY
     }
 }
 
-function fire(gridCanvasId, x, y) {
-    let grid = getGridSquareAt(gridCanvasId, x, y)
-
-    alert("firing on " + grid.gridX + grid.gridY)
-}

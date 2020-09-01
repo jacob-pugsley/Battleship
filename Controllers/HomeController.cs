@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Battleship.Models;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Http;
 
 namespace Battleship.Controllers
 {
@@ -21,7 +23,15 @@ namespace Battleship.Controllers
         public IActionResult Index()
         {
             BattleshipModel bm = new BattleshipModel(11);
+            //HttpContext.Session.SetString("test", "test value");
+            HttpContext.Session.SetString("shipJson", bm.asString());
             return View(bm);
+        }
+
+        [HttpPost]
+        public IActionResult Test()
+        {
+            return Ok(HttpContext.Session.GetString("shipJson"));
         }
 
         public IActionResult Privacy()

@@ -12,7 +12,7 @@
             $.post("/Home/Attack", function (data) {
                 let result = JSON.parse(data);
                 let shipList = result.board
-                drawShips(document.getElementById("gridCanvas"), shipList)
+                //drawShips(document.getElementById("gridCanvas"), shipList)
 
                updateSunk(shipList)
 
@@ -20,7 +20,6 @@
         });
 
         function updateSunk(shipList) {
-            console.log(shipList)
             let statusTable = document.getElementById("targetStatusTable")
 
             //remove all but the first child of table
@@ -75,8 +74,10 @@
                 //check for hit or miss
                 if (result.hit == 1) {
                     $("#resultsH2").text("Hit!")
+                    drawMarker(document.getElementById("gridCanvas"), grid.gridX, grid.gridY, "#ff0000")
                 } else {
                     $("#resultsH2").text("Miss.")
+                    drawMarker(document.getElementById("gridCanvas"), grid.gridX, grid.gridY, "#ffffff")
                 }
 
                 updateSunk(result.board)

@@ -128,3 +128,31 @@ function drawShips(canvas, shipList) {
     }
 }
 
+/* Place an X of the given color on the given cell.
+ */
+function drawMarker(canvas, x, y, hexColor) {
+    if (canvas.getContext) {
+        let context = canvas.getContext("2d")
+        console.log(hexColor)
+
+        let gridWidth = canvas.width / 11
+        let gridHeight = canvas.height / 11
+
+        context.strokeStyle = hexColor
+
+        context.lineWidth = 3
+
+        context.beginPath()
+
+        context.moveTo(x * gridWidth, y * gridHeight)
+        context.lineTo((x + 1) * gridWidth, (y + 1) * gridHeight)    
+        
+        context.moveTo(x * gridWidth, (y + 1) * gridHeight)
+        context.lineTo((x + 1) * gridWidth, y * gridHeight)
+        
+        context.stroke()
+    } else {
+        console.log("canvas error")
+    }
+}
+

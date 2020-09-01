@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Battleship.Models;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http;
+using System.Text.Json;
 
 namespace Battleship.Controllers
 {
@@ -29,9 +30,38 @@ namespace Battleship.Controllers
         }
 
         [HttpPost]
-        public IActionResult Test()
+        public IActionResult Attack(int x, int y)
         {
-            return Ok(HttpContext.Session.GetString("shipJson"));
+            Ship[] ships = JsonSerializer.Deserialize<Ship[]>(HttpContext.Session.GetString("shipJson"));
+
+            bool exit = false;
+            bool hit = false;
+            foreach( Ship s in ships)
+            {
+                for( int i = 0; i < s.HitPoints.GetLength(0); i++)
+                {
+                    if( s.HitPoints[i][0] == x && s.HitPoints[i][1] == y )
+                    {
+                        if (!s.DamageIndex[i])
+                        {
+                            s.DamageIndex[i] = true;
+                            hit = true;
+                        }
+                        HttpContext.Session.SetString("shipJson", JsonSerializer.Serialize(ships));
+                        exit = true;
+                        break;
+                    }
+                }
+                if( exit )
+                {
+                    break;
+                }
+            }
+
+            //return the board and whether we hit or not as JSON
+            string ret = $"{{\"board\": {HttpContext.Session.GetString("shipJson")}, \"hit\": {(hit ? 1 : 0)}}}";
+            Console.WriteLine(ret);
+            return Ok(ret);
         }
 
         public IActionResult Privacy()

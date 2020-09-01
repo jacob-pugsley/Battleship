@@ -11,6 +11,7 @@
 
         function fire(gridCanvasId, x, y) {
             let grid = getGridSquareAt(gridCanvasId, x, y)
+            /*
             $.post("/Home/Test", function (data) {
                 ships = JSON.parse(data)
                 console.log(ships)
@@ -19,12 +20,28 @@
                     for (p in Object.keys(ships[k]["HitPoints"])) {
                         let point = ships[k]["HitPoints"][p];
                         if (point[0] == grid.gridX && point[1] == grid.gridY) {
-                            alert("Hit!")
+                            if (ships["DamageIndex"][p]) {
+                                $("#resultsH2").html = "Already damaged."
+                            } else {
+                                $("#resultsH2").html = "Hit!"
+                            }
                             return;
                         }
                     }
                 }
-                alert("Miss.")
+                $("#resultsH2").html = "Miss."
+            })
+            */
+            $.post("/Home/Attack?x=" + grid.gridX + "&y=" + grid.gridY, function (data) {
+                let result = JSON.parse(data);
+
+                //check for hit or miss
+                console.log(typeof result.hit, result.hit)
+                if (result.hit == 1) {
+                    $("#resultsH2").text("Hit!")
+                } else {
+                    $("#resultsH2").text("Miss.")
+                }
             })
         }
     </script>
@@ -35,4 +52,6 @@
     <canvas id="gridCanvas" width="640" height="480" onclick="fire('gridCanvas', event.clientX, event.clientY)">
         <p>Your browser doesn't support this feature! Please update to the latest version of Chrome or Firefox.</p>
     </canvas>
+
+    <h2 id="resultsH2">Click on the grid to attack!</h2>
 </div>

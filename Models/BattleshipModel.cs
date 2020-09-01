@@ -23,12 +23,26 @@ namespace Battleship.Models
             4   Submarine   3
             5   Patrol Boat 2
             */
-            Ship carrier = new Ship("Carrier", 5);
-            Ship battleship = new Ship("Battleship", 4);
-            Ship destroyer = new Ship("Destroyer", 3);
-            Ship submarine = new Ship("Submarine", 3);
-            Ship ptBoat = new Ship("Patrol Boat", 2);
-
+            Ship carrier = new Ship();
+            carrier.Name = "Carrier";
+            carrier.HitPoints = new int[5][];
+            carrier.DamageIndex = new bool[5];
+            Ship battleship = new Ship();
+            battleship.Name = "Battleship";
+            battleship.HitPoints = new int[4][];
+            battleship.DamageIndex = new bool[4];
+            Ship destroyer = new Ship();
+            destroyer.Name = "Destroyer";
+            destroyer.HitPoints = new int[3][];
+            destroyer.DamageIndex = new bool[3];
+            Ship submarine = new Ship();
+            submarine.Name = "Submarine";
+            submarine.HitPoints = new int[3][];
+            submarine.DamageIndex = new bool[3];
+            Ship ptBoat = new Ship();
+            ptBoat.Name = "Patrol Boat";
+            ptBoat.HitPoints = new int[2][];
+            ptBoat.DamageIndex = new bool[2];
             ships = new Ship[5] { carrier, battleship, destroyer, submarine, ptBoat };
 
             //pick random locations and orientations for the ships
@@ -118,18 +132,22 @@ namespace Battleship.Models
      * number of hit points.
      */
     public class Ship
-    {
-        
+    {   
+        /*
         public Ship(string name, int hitPoints)
         {
             Name = name;
 
-            //list of hit point grid locations
             HitPoints = new int[hitPoints][];
-        }
 
-        public string Name { get; }
+            DamageIndex = new bool[hitPoints];
+        }
+        */
+        
+
+        public string Name { get; set; }
         public int[][] HitPoints { get; set; }
+        public bool[] DamageIndex { get; set; }
 
     }
 }

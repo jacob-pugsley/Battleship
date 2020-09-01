@@ -85,12 +85,12 @@ namespace Battleship.Models
                         if( orientation == 0)
                         {
                             //vertical
-                            y++;
+                            x++;
                         }
                         else
                         {
                             //horizontal
-                            x++;
+                            y++;
                         }
                     }
 

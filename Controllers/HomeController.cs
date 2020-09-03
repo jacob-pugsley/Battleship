@@ -9,21 +9,24 @@ using Battleship.Models;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http;
 using System.Text.Json;
+using MySqlConnector;
 
 namespace Battleship.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly MySqlConnection connection;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, MySqlConnection connection)
         {
             _logger = logger;
+            this.connection = connection;
         }
 
         public IActionResult Index()
         {
-            BattleshipModel bm = new BattleshipModel(11);
+            BattleshipModel bm = new BattleshipModel(11, connection);
             //HttpContext.Session.SetString("test", "test value");
             HttpContext.Session.SetString("shipJson", bm.asString());
             return View(bm);

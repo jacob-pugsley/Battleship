@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MySqlConnector;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -11,8 +12,10 @@ namespace Battleship.Models
     public class BattleshipModel
     {
         Ship[] ships { get; }
-        public BattleshipModel(int gridSize)
+        MySqlConnection dbConnection { get; set; }
+        public BattleshipModel(int gridSize, MySqlConnection connection)
         {
+            dbConnection = connection;
             //binary array representing squares that have been taken
             int[,] grid = new int[gridSize, gridSize];
 
@@ -119,8 +122,39 @@ namespace Battleship.Models
             }
 
 
+            //push the ships to the database
+            Console.WriteLine("Adding ships to database...");
+            pushShipsToDatabase();
+            Console.WriteLine("Done.");
+
         }
 
+        private async void pushShipsToDatabase()
+        {
+            //open the connection
+            dbConnection.Open();
+
+            int shipId = 1;
+            //insert each ship into the database
+            foreach(Ship s in ships)
+            {
+                string commandString = $"insert into shipNames values({shipId}, \"{s.Name}\") as new " +
+                    $"on duplicate key update shipName = new.shipName;";
+                shipId++;
+
+                using var comm = new MySqlCommand(commandString, dbConnection);
+
+                //wait for the command to finish executing
+                using var reader = comm.ExecuteReader();
+
+                //read back the data
+                while( reader.Read())
+                {
+                    Console.WriteLine(reader.GetValue(0));
+                }
+            }
+        }
+        
         /* Check if any ship has been hit or sunk.
          * Sets the sunk property of a hit ship to true as appropriate.
          */

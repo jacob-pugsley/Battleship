@@ -129,30 +129,42 @@ namespace Battleship.Models
 
         }
 
-        private async void pushShipsToDatabase()
+        private void pushShipsToDatabase()
         {
             //open the connection
             dbConnection.Open();
 
             int shipId = 1;
+            int hitPointId = 1;
             //insert each ship into the database
             foreach(Ship s in ships)
             {
                 string commandString = $"insert into shipNames values({shipId}, \"{s.Name}\") as new " +
                     $"on duplicate key update shipName = new.shipName;";
+
+                //push the ship's hit points to the hitPoint table
+                foreach( int[] hp in s.HitPoints)
+                {
+                    commandString += $"insert into hitPoints values({hitPointId}, {hp[0]}, {hp[1]}, false) as new " +
+                        $"on duplicate key update xPos = new.xPos, yPos = new.yPos, hit = new.hit;";
+
+                    //insert the hitpoints into the ship_hitpoints join table
+                    commandString += $"insert into ship_hitpoints values({shipId}, {hitPointId}) as new " +
+                        $"on duplicate key update hitPointId = new.hitPointId;";
+                    
+                    hitPointId++;
+
+                    
+                }
                 shipId++;
 
+                //perform all queries with one string to avoid "database connection in use" errors
                 using var comm = new MySqlCommand(commandString, dbConnection);
 
-                //wait for the command to finish executing
                 using var reader = comm.ExecuteReader();
-
-                //read back the data
-                while( reader.Read())
-                {
-                    Console.WriteLine(reader.GetValue(0));
-                }
             }
+            //close the database connection when finished
+            dbConnection.Close();
         }
         
         /* Check if any ship has been hit or sunk.

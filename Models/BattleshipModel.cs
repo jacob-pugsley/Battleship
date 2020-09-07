@@ -1,6 +1,7 @@
 ﻿using MySqlConnector;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection.Metadata.Ecma335;
@@ -218,6 +219,71 @@ namespace Battleship.Models
         public string asString()
         {
             return JsonSerializer.Serialize(ships);
+        }
+
+        public static string getShips(MySqlConnection dbConnection)
+        {
+            dbConnection.Open();
+
+            string commandString = "select ship_hitpoints.shipId, shipnames.shipName, " +
+                "hitpoints.xPos, hitpoints.yPos, hitpoints.hit from shipnames " +
+                "join ship_hitPoints on ship_hitpoints.shipId = shipnames.id " +
+                "join hitpoints on ship_hitpoints.hitPointId = hitpoints.id;";
+
+            
+
+            using var comm = new MySqlCommand(commandString, dbConnection);
+
+            using var reader = comm.ExecuteReader();
+
+            //TODO: return reader output to the client as a JSON string
+
+            Ship[] tmp = new Ship[5];
+            List<int[]>[] hpList = new List<int[]>[5];
+            List<bool>[] diList = new List<bool>[5];
+
+            while ( reader.Read())
+            {
+                //Console.WriteLine(reader.GetValue(1));
+                int shipId = (int) reader.GetValue(0);
+                
+                
+                //if the ship doesn't already exist, make a new ship
+                if( tmp[shipId - 1] == null)
+                {
+                    tmp[shipId - 1] = new Ship();
+                    hpList[shipId - 1] = new List<int[]>();
+                    diList[shipId - 1] = new List<bool>();
+                }
+
+                //then update all fields
+                tmp[shipId - 1].Name = reader.GetString(1);
+                //append to the end of the lists
+                int[] hp = new int[2] { reader.GetInt32(2), reader.GetInt32(3) };
+                hpList[shipId - 1].Add(hp);
+                //tmp[shipId - 1].HitPoints.Append(hp);
+                //tmp[shipId - 1].DamageIndex.Append(reader.GetInt32(4) != 0);
+                diList[shipId - 1].Add(reader.GetInt32(4) != 0);
+            }
+
+            //update the sunk status and hitpoints of all ships
+            for(int i = 0; i < tmp.Length; i++)
+            {
+                tmp[i].HitPoints = hpList[i].ToArray();
+                tmp[i].DamageIndex = diList[i].ToArray();
+
+                tmp[i].Sunk = true;
+                foreach ( bool hit in tmp[i].DamageIndex)
+                {
+                    if( !hit)
+                    {
+                        tmp[i].Sunk = false;
+                    }
+                }
+
+            }
+
+            return JsonSerializer.Serialize(tmp);
         }
     }
 

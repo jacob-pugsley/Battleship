@@ -35,6 +35,10 @@ namespace Battleship.Controllers
         [HttpPost]
         public IActionResult Attack(int x, int y)
         {
+            //
+            Console.WriteLine("ships: " + BattleshipModel.getShips(connection));
+            //
+
             string tmp = HttpContext.Session.GetString("shipJson");
             Ship[] ships;
             if (tmp != null)
@@ -53,7 +57,7 @@ namespace Battleship.Controllers
 
             //return the board and whether we hit or not as JSON
             string ret = $"{{\"board\": {HttpContext.Session.GetString("shipJson")}, \"hit\": {(hit ? 1 : 0)}}}";
-            Console.WriteLine(ret);
+            //Console.WriteLine(ret);
             return Ok(ret);
         }
 

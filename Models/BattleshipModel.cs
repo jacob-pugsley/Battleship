@@ -14,9 +14,8 @@ namespace Battleship.Models
     {
         Ship[] ships { get; }
         MySqlConnection dbConnection { get; set; }
-        public BattleshipModel(int gridSize, MySqlConnection connection)
+        public static void createRandomBoard(int gridSize, MySqlConnection dbConnection)
         {
-            dbConnection = connection;
             //binary array representing squares that have been taken
             int[,] grid = new int[gridSize, gridSize];
 
@@ -48,31 +47,31 @@ namespace Battleship.Models
             ptBoat.Name = "Patrol Boat";
             ptBoat.HitPoints = new int[2][];
             ptBoat.DamageIndex = new bool[2];
-            ships = new Ship[5] { carrier, battleship, destroyer, submarine, ptBoat };
+            Ship[] ships = new Ship[5] { carrier, battleship, destroyer, submarine, ptBoat };
 
             //pick random locations and orientations for the ships
             Random rand = new Random();
             int label = 1;
-            foreach( Ship s in ships)
+            foreach (Ship s in ships)
             {
                 //pick random locations until the ship can be placed
                 //accounting for all of its hitpoints
                 int hitPoints = s.HitPoints.GetLength(0);
-                while ( true )
+                while (true)
                 {
-                    int x = rand.Next(1, gridSize - (hitPoints - 1) );
-                    int y = rand.Next(1, gridSize - (hitPoints - 1) );
+                    int x = rand.Next(1, gridSize - (hitPoints - 1));
+                    int y = rand.Next(1, gridSize - (hitPoints - 1));
                     int orientation = rand.Next(0, 2);
 
-                    
+
                     int[][] test = new int[hitPoints][];
                     bool valid = true;
 
                     //check if there are enough empty spaces in the direction of the orientation
                     //to fit the ship, starting at the initial random position
-                    for( int i = 0; i < hitPoints; i++)
+                    for (int i = 0; i < hitPoints; i++)
                     {
-                        if( grid[y, x] != 0)
+                        if (grid[y, x] != 0)
                         {
                             valid = false;
                             break;
@@ -86,7 +85,7 @@ namespace Battleship.Models
                             test[i] = tmp;
                         }
 
-                        if( orientation == 0)
+                        if (orientation == 0)
                         {
                             //vertical
                             x++;
@@ -98,10 +97,10 @@ namespace Battleship.Models
                         }
                     }
 
-                    
-                    if( valid )
+
+                    if (valid)
                     {
-                        for(int i = 0; i < test.GetLength(0); i++)
+                        for (int i = 0; i < test.GetLength(0); i++)
                         {
                             grid[test[i][1], test[i][0]] = label;
                         }
@@ -111,11 +110,11 @@ namespace Battleship.Models
                     }
                 }
             }
-            
+
             //print the grid for testing
-            for( int i = 0; i < grid.GetLength(0); i++)
+            for (int i = 0; i < grid.GetLength(0); i++)
             {
-                for( int j = 0; j < grid.GetLength(1); j++)
+                for (int j = 0; j < grid.GetLength(1); j++)
                 {
                     Console.Write(grid[j, i] + " ");
                 }
@@ -125,12 +124,12 @@ namespace Battleship.Models
 
             //push the ships to the database
             Console.WriteLine("Adding ships to database...");
-            pushShipsToDatabase();
+            BattleshipModel.pushShipsToDatabase(dbConnection, ships);
             Console.WriteLine("Done.");
 
         }
 
-        private void pushShipsToDatabase()
+        private static void pushShipsToDatabase(MySqlConnection dbConnection, Ship[] ships)
         {
             //open the connection
             dbConnection.Open();
@@ -138,13 +137,13 @@ namespace Battleship.Models
             int shipId = 1;
             int hitPointId = 1;
             //insert each ship into the database
-            foreach(Ship s in ships)
+            foreach (Ship s in ships)
             {
                 string commandString = $"insert into shipNames values({shipId}, \"{s.Name}\") as new " +
                     $"on duplicate key update shipName = new.shipName;";
 
                 //push the ship's hit points to the hitPoint table
-                foreach( int[] hp in s.HitPoints)
+                foreach (int[] hp in s.HitPoints)
                 {
                     commandString += $"insert into hitPoints values({hitPointId}, {hp[0]}, {hp[1]}, false) as new " +
                         $"on duplicate key update xPos = new.xPos, yPos = new.yPos, hit = new.hit;";
@@ -152,10 +151,10 @@ namespace Battleship.Models
                     //insert the hitpoints into the ship_hitpoints join table
                     commandString += $"insert into ship_hitpoints values({shipId}, {hitPointId}) as new " +
                         $"on duplicate key update hitPointId = new.hitPointId;";
-                    
+
                     hitPointId++;
 
-                    
+
                 }
                 shipId++;
 
@@ -167,7 +166,7 @@ namespace Battleship.Models
             //close the database connection when finished
             dbConnection.Close();
         }
-        
+
         /* Check if any ship has been hit or sunk.
          * Sets the sunk property of a hit ship to true as appropriate.
          */
@@ -184,7 +183,7 @@ namespace Battleship.Models
                         if (!s.DamageIndex[i])
                         {
                             s.DamageIndex[i] = true;
-                            if( isSunk(s))
+                            if (isSunk(s))
                             {
                                 s.Sunk = true;
                             }
@@ -204,15 +203,15 @@ namespace Battleship.Models
 
         private static bool isSunk(Ship s)
         {
-            for( int i = 0; i < s.DamageIndex.GetLength(0); i++)
+            for (int i = 0; i < s.DamageIndex.GetLength(0); i++)
             {
-                if( s.DamageIndex[i] == false)
+                if (s.DamageIndex[i] == false)
                 {
                     return false;
                 }
             }
             return true;
-        } 
+        }
 
         /* Return the ship list as a string
          */
@@ -221,8 +220,9 @@ namespace Battleship.Models
             return JsonSerializer.Serialize(ships);
         }
 
-        public static string getShips(MySqlConnection dbConnection)
+        public static Ship[] getShips(MySqlConnection dbConnection)
         {
+            //open the connection
             dbConnection.Open();
 
             string commandString = "select ship_hitpoints.shipId, shipnames.shipName, " +
@@ -230,26 +230,24 @@ namespace Battleship.Models
                 "join ship_hitPoints on ship_hitpoints.shipId = shipnames.id " +
                 "join hitpoints on ship_hitpoints.hitPointId = hitpoints.id;";
 
-            
+
 
             using var comm = new MySqlCommand(commandString, dbConnection);
 
             using var reader = comm.ExecuteReader();
 
-            //TODO: return reader output to the client as a JSON string
-
             Ship[] tmp = new Ship[5];
             List<int[]>[] hpList = new List<int[]>[5];
             List<bool>[] diList = new List<bool>[5];
 
-            while ( reader.Read())
+            while (reader.Read())
             {
                 //Console.WriteLine(reader.GetValue(1));
-                int shipId = (int) reader.GetValue(0);
-                
-                
+                int shipId = (int)reader.GetValue(0);
+
+
                 //if the ship doesn't already exist, make a new ship
-                if( tmp[shipId - 1] == null)
+                if (tmp[shipId - 1] == null)
                 {
                     tmp[shipId - 1] = new Ship();
                     hpList[shipId - 1] = new List<int[]>();
@@ -267,15 +265,25 @@ namespace Battleship.Models
             }
 
             //update the sunk status and hitpoints of all ships
-            for(int i = 0; i < tmp.Length; i++)
+            //if the first ship is null, the list is empty
+            if (tmp[0] == null)
             {
+                dbConnection.Close();
+                return null;
+            }
+            for (int i = 0; i < tmp.Length; i++)
+            {
+                if (tmp[i] == null)
+                {
+                    break;
+                }
                 tmp[i].HitPoints = hpList[i].ToArray();
                 tmp[i].DamageIndex = diList[i].ToArray();
 
                 tmp[i].Sunk = true;
-                foreach ( bool hit in tmp[i].DamageIndex)
+                foreach (bool hit in tmp[i].DamageIndex)
                 {
-                    if( !hit)
+                    if (!hit)
                     {
                         tmp[i].Sunk = false;
                     }
@@ -283,9 +291,62 @@ namespace Battleship.Models
 
             }
 
-            return JsonSerializer.Serialize(tmp);
+            dbConnection.Close();
+            return tmp;
+        }
+
+        /* Update the database if the given coordinate was a hit.
+        * Return true if there was a hit, false otherwise.
+        */
+        public static bool checkHit(MySqlConnection dbConnection, int x, int y)
+        {
+
+
+            //first check if there was a hit
+            Ship[] ships = BattleshipModel.getShips(dbConnection);
+
+            //open the connection
+            dbConnection.Open();
+
+            bool hit = false;
+            int[] hitPoint = new int[2];
+
+            foreach (Ship s in ships)
+            {
+                foreach (int[] hp in s.HitPoints)
+                {
+                    if (hp[0] == x && hp[1] == y)
+                    {
+                        hitPoint[0] = hp[0];
+                        hitPoint[1] = hp[1];
+                        hit = true;
+                        break;
+                    }
+                }
+                if (hit)
+                {
+                    break;
+                }
+            }
+
+            //update database
+            if (hit)
+            {
+                //perform a safe update by first getting the hitpoint id to be changed
+                string commandString = $"select id into @keyvar from hitpoints where xPos = {hitPoint[0]} and yPos = {hitPoint[1]}; " +
+                    $"update hitpoints set hit = 1 where id = @keyvar";
+
+                using var comm = new MySqlCommand(commandString, dbConnection);
+                using var reader = comm.ExecuteReader();
+            }
+
+            dbConnection.Close();
+            return hit;
+
         }
     }
+
+
 
     /* Represents a ship with base location and
      * number of hit points.

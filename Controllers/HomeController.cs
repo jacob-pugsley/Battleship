@@ -26,19 +26,26 @@ namespace Battleship.Controllers
 
         public IActionResult Index()
         {
-            BattleshipModel bm = new BattleshipModel(11, connection);
+            //BattleshipModel bm;
+            if ( BattleshipModel.getShips(connection) == null)
+            {
+                Console.WriteLine("database is empty, creating new game");
+                //bm = new BattleshipModel(11, connection);
+                BattleshipModel.createRandomBoard(11, connection);
+            }
+             
             //HttpContext.Session.SetString("test", "test value");
-            HttpContext.Session.SetString("shipJson", bm.asString());
-            return View(bm);
+            HttpContext.Session.SetString("shipJson", JsonSerializer.Serialize(BattleshipModel.getShips(connection)));
+            return View();
         }
 
         [HttpPost]
         public IActionResult Attack(int x, int y)
         {
             //
-            Console.WriteLine("ships: " + BattleshipModel.getShips(connection));
+            //Console.WriteLine("ships: " + BattleshipModel.getShips(connection));
             //
-
+            /*
             string tmp = HttpContext.Session.GetString("shipJson");
             Ship[] ships;
             if (tmp != null)
@@ -55,9 +62,11 @@ namespace Battleship.Controllers
 
             HttpContext.Session.SetString("shipJson", JsonSerializer.Serialize(ships));
 
+            */
+
+            bool hit = BattleshipModel.checkHit(connection, x, y);
             //return the board and whether we hit or not as JSON
-            string ret = $"{{\"board\": {HttpContext.Session.GetString("shipJson")}, \"hit\": {(hit ? 1 : 0)}}}";
-            //Console.WriteLine(ret);
+            string ret = $"{{\"board\": {JsonSerializer.Serialize(BattleshipModel.getShips(connection))}, \"hit\": {(hit ? 1 : 0)}}}";
             return Ok(ret);
         }
 

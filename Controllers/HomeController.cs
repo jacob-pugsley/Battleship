@@ -33,36 +33,12 @@ namespace Battleship.Controllers
                 //bm = new BattleshipModel(11, connection);
                 BattleshipModel.createRandomBoard(11, connection);
             }
-             
-            //HttpContext.Session.SetString("test", "test value");
-            HttpContext.Session.SetString("shipJson", JsonSerializer.Serialize(BattleshipModel.getShips(connection)));
             return View();
         }
 
         [HttpPost]
         public IActionResult Attack(int x, int y)
         {
-            //
-            //Console.WriteLine("ships: " + BattleshipModel.getShips(connection));
-            //
-            /*
-            string tmp = HttpContext.Session.GetString("shipJson");
-            Ship[] ships;
-            if (tmp != null)
-            {
-                ships = JsonSerializer.Deserialize<Ship[]>(tmp);
-            }
-            else
-            {
-                Console.WriteLine("Error: session variable shipJson is null");
-                return Error();
-            }
-
-            bool hit = BattleshipModel.isHit(ships, x, y);
-
-            HttpContext.Session.SetString("shipJson", JsonSerializer.Serialize(ships));
-
-            */
 
             bool hit = BattleshipModel.checkHit(connection, x, y);
             //return the board and whether we hit or not as JSON

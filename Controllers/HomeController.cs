@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http;
 using System.Text.Json;
 using MySqlConnector;
+using System.ComponentModel;
 
 namespace Battleship.Controllers
 {
@@ -24,25 +25,25 @@ namespace Battleship.Controllers
             this.connection = connection;
         }
 
-        public IActionResult Index()
+        public IActionResult Game(int id)
         {
             //BattleshipModel bm;
-            if ( BattleshipModel.getShips(connection) == null)
+            if ( BattleshipModel.getShips(connection, id) == null)
             {
                 Console.WriteLine("database is empty, creating new game");
                 //bm = new BattleshipModel(11, connection);
-                BattleshipModel.createRandomBoard(11, connection);
+                BattleshipModel.createRandomBoard(11, connection, id);
             }
             return View();
         }
 
         [HttpPost]
-        public IActionResult Attack(int x, int y)
+        public IActionResult Attack(int x, int y, int gameId)
         {
 
-            bool hit = BattleshipModel.checkHit(connection, x, y);
+            bool hit = BattleshipModel.checkHit(connection, gameId, x, y);
             //return the board and whether we hit or not as JSON
-            string ret = $"{{\"board\": {JsonSerializer.Serialize(BattleshipModel.getShips(connection))}, \"hit\": {(hit ? 1 : 0)}}}";
+            string ret = $"{{\"board\": {JsonSerializer.Serialize(BattleshipModel.getShips(connection, gameId))}, \"hit\": {(hit ? 1 : 0)}}}";
             return Ok(ret);
         }
 

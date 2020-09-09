@@ -53,7 +53,7 @@
         function fire(gridCanvasId, x, y) {
             let grid = getGridSquareAt(gridCanvasId, x, y)
 
-            $.post("/Home/Attack?x=" + grid.gridX + "&y=" + grid.gridY, function (data) {
+            $.post("/Home/Attack?x=" + grid.gridX + "&y=" + grid.gridY + "&gameId=" + getGameIdFromUrl(), function (data) {
                 let result = JSON.parse(data);
 
                 //check for hit or miss
@@ -69,6 +69,18 @@
             })
 
             
+        }
+
+        function getGameIdFromUrl() {
+            let params = window.location.href.split("?")[1]
+
+            let id = params.split("&")[2]
+
+            id = id.split("=")[1]
+
+            console.log(id);
+
+            return Number.parseInt(id)
         }
     </script>
 }

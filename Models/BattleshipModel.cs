@@ -12,7 +12,7 @@ namespace Battleship.Models
 {
     public class BattleshipModel
     {
-        public static void createRandomBoard(int gridSize, MySqlConnection dbConnection)
+        public static void createRandomBoard(int gridSize, MySqlConnection dbConnection, int gameId)
         {
             //binary array representing squares that have been taken
             int[,] grid = new int[gridSize, gridSize];
@@ -122,18 +122,40 @@ namespace Battleship.Models
 
             //push the ships to the database
             Console.WriteLine("Adding ships to database...");
-            BattleshipModel.pushShipsToDatabase(dbConnection, ships);
+            BattleshipModel.pushShipsToDatabase(dbConnection, ships, gameId);
             Console.WriteLine("Done.");
 
         }
 
-        private static void pushShipsToDatabase(MySqlConnection dbConnection, Ship[] ships)
+        private static int[] getMaxIds(MySqlConnection dbConnection)
         {
+            int[] ret = new int[2];
+
+            dbConnection.Open();
+
+            string commandString = "select MAX(shipId), MAX(hitPointId) from ship_hitpoints";
+
+            using var comm = new MySqlCommand(commandString, dbConnection);
+            using var reader = comm.ExecuteReader();
+
+            if(reader.Read())
+            {
+                ret[0] = reader.GetInt32(0);
+                ret[1] = reader.GetInt32(1);
+            }
+            dbConnection.Close();
+            return ret;
+        }
+
+        private static void pushShipsToDatabase(MySqlConnection dbConnection, Ship[] ships, int gameId)
+        {
+            int[] ids = BattleshipModel.getMaxIds(dbConnection);
             //open the connection
             dbConnection.Open();
 
-            int shipId = 1;
-            int hitPointId = 1;
+            int shipId = ids[0];
+            int hitPointId = ids[1];
+            
             //insert each ship into the database
             foreach (Ship s in ships)
             {
@@ -143,11 +165,11 @@ namespace Battleship.Models
                 //push the ship's hit points to the hitPoint table
                 foreach (int[] hp in s.HitPoints)
                 {
-                    commandString += $"insert into hitPoints values({hitPointId}, {hp[0]}, {hp[1]}, false) as new " +
+                    commandString += $"insert into hitPoints values({hitPointId}, {gameId}, {hp[0]}, {hp[1]}, false) as new " +
                         $"on duplicate key update xPos = new.xPos, yPos = new.yPos, hit = new.hit;";
 
                     //insert the hitpoints into the ship_hitpoints join table
-                    commandString += $"insert into ship_hitpoints values({shipId}, {hitPointId}) as new " +
+                    commandString += $"insert into ship_hitpoints values({gameId}, {shipId}, {hitPointId}) as new " +
                         $"on duplicate key update hitPointId = new.hitPointId;";
 
                     hitPointId++;
@@ -165,7 +187,7 @@ namespace Battleship.Models
             dbConnection.Close();
         }
 
-        public static Ship[] getShips(MySqlConnection dbConnection)
+        public static Ship[] getShips(MySqlConnection dbConnection, int gameId)
         {
             //open the connection
             dbConnection.Open();
@@ -173,7 +195,8 @@ namespace Battleship.Models
             string commandString = "select ship_hitpoints.shipId, shipnames.shipName, " +
                 "hitpoints.xPos, hitpoints.yPos, hitpoints.hit from shipnames " +
                 "join ship_hitPoints on ship_hitpoints.shipId = shipnames.id " +
-                "join hitpoints on ship_hitpoints.hitPointId = hitpoints.id;";
+                "join hitpoints on ship_hitpoints.hitPointId = hitpoints.id " +
+                $"where ship_hitpoinnts.gameId = {gameId};";
 
 
 
@@ -240,12 +263,12 @@ namespace Battleship.Models
         /* Update the database if the given coordinate was a hit.
         * Return true if there was a hit, false otherwise.
         */
-        public static bool checkHit(MySqlConnection dbConnection, int x, int y)
+        public static bool checkHit(MySqlConnection dbConnection, int gameId, int x, int y)
         {
 
 
             //first check if there was a hit
-            Ship[] ships = BattleshipModel.getShips(dbConnection);
+            Ship[] ships = BattleshipModel.getShips(dbConnection, gameId);
 
             //open the connection
             dbConnection.Open();
@@ -275,7 +298,7 @@ namespace Battleship.Models
             if (hit)
             {
                 //perform a safe update by first getting the hitpoint id to be changed
-                string commandString = $"select id into @keyvar from hitpoints where xPos = {hitPoint[0]} and yPos = {hitPoint[1]}; " +
+                string commandString = $"select id into @keyvar from hitpoints where gameId = {gameId} and xPos = {hitPoint[0]} and yPos = {hitPoint[1]}; " +
                     $"update hitpoints set hit = 1 where id = @keyvar";
 
                 using var comm = new MySqlCommand(commandString, dbConnection);

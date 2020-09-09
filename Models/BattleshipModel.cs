@@ -140,8 +140,23 @@ namespace Battleship.Models
 
             if(reader.Read())
             {
-                ret[0] = reader.GetInt32(0);
-                ret[1] = reader.GetInt32(1);
+                try
+                {
+                    ret[0] = reader.GetInt32(0) + 1;
+                }catch( InvalidCastException)
+                {
+                    Console.WriteLine("rdr 0: " + reader.GetValue(0));
+                    ret[0] = 1;
+                }
+                try
+                {
+                    ret[1] = reader.GetInt32(1) + 1;
+                }
+                catch (InvalidCastException)
+                {
+                    Console.WriteLine("rdr 1: " + reader.GetValue(1));
+                    ret[1] = 1;
+                }
             }
             dbConnection.Close();
             return ret;
@@ -196,7 +211,7 @@ namespace Battleship.Models
                 "hitpoints.xPos, hitpoints.yPos, hitpoints.hit from shipnames " +
                 "join ship_hitPoints on ship_hitpoints.shipId = shipnames.id " +
                 "join hitpoints on ship_hitpoints.hitPointId = hitpoints.id " +
-                $"where ship_hitpoinnts.gameId = {gameId};";
+                $"where ship_hitpoints.gameId = {gameId};";
 
 
 

@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Game Page";
 }
 @section scripts
 {
@@ -7,9 +7,17 @@
     <link rel="stylesheet" type="text/css" href="~/css/index.css" />
     <script src="~/js/index.js" type="text/javascript"></script>
     <script>
+        function getGameIdFromUrl() {
+            let id = window.location.href.split("id=")[1]
+
+            console.log("game id: ", id);
+
+            return Number.parseInt(id)
+        }
+
         $(document).ready(function () {
             initGrid(document.getElementById("gridCanvas"))
-            $.post("/Home/Attack", function (data) {
+            $.post("/Home/Attack?gameId=" + getGameIdFromUrl(), function (data) {
                 let result = JSON.parse(data);
                 let shipList = result.board
                 //drawShips(document.getElementById("gridCanvas"), shipList)
@@ -71,17 +79,7 @@
             
         }
 
-        function getGameIdFromUrl() {
-            let params = window.location.href.split("?")[1]
 
-            let id = params.split("&")[2]
-
-            id = id.split("=")[1]
-
-            console.log(id);
-
-            return Number.parseInt(id)
-        }
     </script>
 }
 @model BattleshipModel

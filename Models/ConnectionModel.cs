@@ -19,7 +19,10 @@ namespace Battleship.Models
         {
             dbConnection.Open();
 
-            string commandString = $"select id from game where game.player1Id = {userId1} and game.player2Id = {userId2};";
+            //we don't know which player id is considered player 1 in the database, so we have to account for both
+            //possibilities
+            string commandString = $"select gameId from game where (game.player1Id = {userId1} and game.player2Id = {userId2}) " +
+                $"or (game.player1Id = {userId2} and game.player2Id = {userId1};";
 
             using var comm = new MySqlCommand(commandString, dbConnection);
             using var reader = comm.ExecuteReader();
@@ -34,10 +37,14 @@ namespace Battleship.Models
             if( gameIds.Count() == 0)
             {
                 Console.WriteLine("No games found, creating a new one");
+                dbConnection.Close();
                 gameIds.Add(ConnectionModel.createGame(dbConnection, userId1, userId2));
             }
+            else 
+            {
+                dbConnection.Close();
+            }
 
-            dbConnection.Close();
             return gameIds.ToArray();
         }
 
@@ -51,7 +58,7 @@ namespace Battleship.Models
             //passing 0 for the primary key will auto-increment the field
             //this command will insert the new game and return its id
             string commandString = $"insert into game values(0, {userId1}, {userId2}, {userId1});" +
-                $"select id from game where id = LAST_INSERT_ID();";
+                $"select gameId from game where gameId = LAST_INSERT_ID();";
 
             using var comm = new MySqlCommand(commandString, dbConnection);
             using var reader = comm.ExecuteReader();

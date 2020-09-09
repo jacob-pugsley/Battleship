@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using System.Text.Json;
 using MySqlConnector;
 using System.ComponentModel;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace Battleship.Controllers
 {
@@ -25,6 +26,11 @@ namespace Battleship.Controllers
             this.connection = connection;
         }
 
+        public IActionResult Index()
+        {
+            return View();
+        }
+
         public IActionResult Game(int id)
         {
             //BattleshipModel bm;
@@ -35,6 +41,18 @@ namespace Battleship.Controllers
                 BattleshipModel.createRandomBoard(11, connection, id);
             }
             return View();
+        }
+
+        [HttpPost]
+        public IActionResult GetGame(int userId1, int userId2)
+        {
+            //get the id of the game between the two users
+            //TODO: support multiple ids
+            int[] ids = ConnectionModel.getGameIds(connection, userId1, userId2);
+
+            string ret = $"{{\"id\": {ids[0]}}}";
+
+            return Ok(ret);
         }
 
         [HttpPost]

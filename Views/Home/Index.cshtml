@@ -21,19 +21,20 @@
             })
 
             //get the game page
-            window.location.href = window.location.href + "Home/Game?id=" + gameId;
+            window.location.href = window.location.href + "Home/Game?id=" + gameId + "&playerId=" + user1;
         }
     </script>
 }
 @model ConnectionModel
 
 <div class="text-center">
+
     <h1>Welcome to the home page!</h1>
 
     <form>
         I am user <input type="number" placeholder="ID" id="user1"/> and I want to join a game with user 
         <input type="number" placeholder="ID" id="user2"/>.
         <br />
-        <button type="button" onclick="joinGame()">Join</button>
+        <button type="button" onclick="joinGame()"}>Join</button>
     </form>
 </div>

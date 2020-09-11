@@ -324,6 +324,45 @@ namespace Battleship.Models
             return hit;
 
         }
+
+        public static bool myTurn(MySqlConnection dbConnection, int gameId, int playerId)
+        {
+            dbConnection.Open();
+
+            string commandString = $"select currentPlayer from game where gameId = {gameId};";
+
+            using var comm = new MySqlCommand(commandString, dbConnection);
+
+            using var reader = comm.ExecuteReader();
+
+            if( reader.Read())
+            {
+                bool ret = reader.GetInt32(0) == playerId;
+                dbConnection.Close();
+                return ret;
+            }
+            else{
+                Console.WriteLine("Error: no game found with given gameId");
+                dbConnection.Close();
+                return false;
+            }
+        }
+
+        public static void changeTurn(MySqlConnection dbConnection, int gameId)
+        {
+            dbConnection.Open();
+
+            string commandString = $"select currentPlayer into @cp from game where gameId = {gameId};" +
+                $"select player1Id into @p1 from game where gameId = {gameId};" +
+                $"select player2Id into @p2 from game where gameId = {gameId};" +
+                $"update game set currentPlayer = if (@cp = @p1, @p2, @p1 );";
+
+            using var comm = new MySqlCommand(commandString, dbConnection);
+
+            comm.ExecuteReader();
+
+            dbConnection.Close();
+        }
     }
 
     /* Represents a ship with base location and

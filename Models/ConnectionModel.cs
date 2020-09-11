@@ -22,7 +22,7 @@ namespace Battleship.Models
             //we don't know which player id is considered player 1 in the database, so we have to account for both
             //possibilities
             string commandString = $"select gameId from game where (game.player1Id = {userId1} and game.player2Id = {userId2}) " +
-                $"or (game.player1Id = {userId2} and game.player2Id = {userId1};";
+                $"or (game.player1Id = {userId2} and game.player2Id = {userId1});";
 
             using var comm = new MySqlCommand(commandString, dbConnection);
             using var reader = comm.ExecuteReader();

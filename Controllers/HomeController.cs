@@ -65,6 +65,23 @@ namespace Battleship.Controllers
             return Ok(ret);
         }
 
+        public IActionResult MyTurn(int gameId, int playerId)
+        {
+            bool isMyTurn = BattleshipModel.myTurn(connection, gameId, playerId);
+
+            string ret = $"{{\"myTurn\": {(isMyTurn ? 1 : 0)}}}";
+
+            return Ok(ret);
+        }
+
+        [HttpPost]
+        public IActionResult ChangeTurn(int gameId)
+        {
+            BattleshipModel.changeTurn(connection, gameId);
+
+            return Ok();
+        }
+
         public IActionResult Privacy()
         {
             return View();

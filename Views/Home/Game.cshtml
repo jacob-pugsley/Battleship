@@ -8,22 +8,40 @@
     <script src="~/js/index.js" type="text/javascript"></script>
     <script>
         function getGameIdFromUrl() {
-            let id = window.location.href.split("id=")[1]
+            let id = window.location.href.split("id=")[1].split("&")[0]
 
             console.log("game id: ", id);
 
             return Number.parseInt(id)
         }
 
+        function getParamFromUrl(param) {
+            let par = window.location.href.split(param + "=")[1].split("&")[0]
+
+            console.log(param + ": ", par)
+
+            return par
+        }
+
         $(document).ready(function () {
             initGrid(document.getElementById("gridCanvas"))
-            $.post("/Home/Attack?gameId=" + getGameIdFromUrl(), function (data) {
+            $.post("/Home/Attack?gameId=" + getParamFromUrl("id"), function (data) {
                 let result = JSON.parse(data);
                 let shipList = result.board
                 //drawShips(document.getElementById("gridCanvas"), shipList)
 
                updateSunk(shipList)
 
+            })
+
+            //get the current turn information
+            $.get("/Home/MyTurn?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("playerId"), function (data) {
+                let result = JSON.parse(data);
+                if (result.myTurn) {
+                    document.getElementById("myTurnH2").innerHTML = "It is your turn!";
+                } else {
+                    document.getElementById("myTurnH2").innerHTML = "Is it not your turn.";
+                }
             })
         });
 
@@ -76,7 +94,19 @@
                 updateSunk(result.board)
             })
 
-            
+
+            //change turn
+            $.post("/Home/ChangeTurn?gameId=" + getGameIdFromUrl())
+
+            //get the current turn information
+            $.get("/Home/MyTurn?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("playerId"), function (data) {
+                let result = JSON.parse(data);
+                if (result.myTurn) {
+                    document.getElementById("myTurnH2").innerHTML = "It is your turn!";
+                } else {
+                    document.getElementById("myTurnH2").innerHTML = "It is not your turn.";
+                }
+            })
         }
 
 
@@ -89,6 +119,8 @@
         <p>Your browser doesn't support this feature! Please update to the latest version of Chrome or Firefox.</p>
     </canvas>
 
+    <h2 id="myTurnH2">Getting turn information...</h2>
+    <br />
     <h2 id="resultsH2">Click on the grid to attack!</h2>
     
     <br />

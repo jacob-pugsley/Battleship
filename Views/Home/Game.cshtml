@@ -37,10 +37,11 @@
             //get the current turn information
             $.get("/Home/MyTurn?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("playerId"), function (data) {
                 let result = JSON.parse(data);
-                if (result.myTurn) {
+                if (result.myTurn == 1) {
                     document.getElementById("myTurnH2").innerHTML = "It is your turn!";
+                    document.getElementById("myTurn").value = true;
                 } else {
-                    document.getElementById("myTurnH2").innerHTML = "Is it not your turn.";
+                    document.getElementById("myTurnH2").innerHTML = "It is not your turn.";
                 }
             })
         });
@@ -98,15 +99,15 @@
             //change turn
             $.post("/Home/ChangeTurn?gameId=" + getGameIdFromUrl())
 
-            //get the current turn information
-            $.get("/Home/MyTurn?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("playerId"), function (data) {
-                let result = JSON.parse(data);
-                if (result.myTurn) {
-                    document.getElementById("myTurnH2").innerHTML = "It is your turn!";
-                } else {
-                    document.getElementById("myTurnH2").innerHTML = "It is not your turn.";
-                }
-            })
+            let myTurn = document.getElementById("myTurn").value
+
+            if (myTurn == "true") {
+                document.getElementById("myTurn").value = "false";
+                document.getElementById("myTurnH2").innerHTML = "It is not your turn.";
+            } else {
+                document.getElementById("myTurn").value = "true";
+                document.getElementById("myTurnH2").innerHTML = "It is your turn!";
+            }
         }
 
 
@@ -131,4 +132,6 @@
             <td><b>Target Name</b></td><td><b>Status</b></td>
         </tr>
     </table>
+
+    @Html.Hidden("myTurn", "false")
 </div>

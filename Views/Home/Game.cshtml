@@ -18,9 +18,19 @@
         function getParamFromUrl(param) {
             let par = window.location.href.split(param + "=")[1].split("&")[0]
 
-            console.log(param + ": ", par)
-
             return par
+        }
+
+        function updateTurn() {
+            //get the current turn information
+            $.get("/Home/MyTurn?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("playerId"), function (data) {
+                let result = JSON.parse(data);
+                if (result.myTurn == 1) {
+                    document.getElementById("myTurnH2").innerHTML = "It is your turn!";
+                } else {
+                    document.getElementById("myTurnH2").innerHTML = "It is not your turn.";
+                }
+            })
         }
 
         $(document).ready(function () {
@@ -34,16 +44,9 @@
 
             })
 
-            //get the current turn information
-            $.get("/Home/MyTurn?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("playerId"), function (data) {
-                let result = JSON.parse(data);
-                if (result.myTurn == 1) {
-                    document.getElementById("myTurnH2").innerHTML = "It is your turn!";
-                    document.getElementById("myTurn").value = true;
-                } else {
-                    document.getElementById("myTurnH2").innerHTML = "It is not your turn.";
-                }
-            })
+            updateTurn()
+
+            setInterval(updateTurn, 500)
         });
 
         function updateSunk(shipList) {
@@ -77,6 +80,8 @@
             }
         }
 
+
+
         function fire(gridCanvasId, x, y) {
             let grid = getGridSquareAt(gridCanvasId, x, y)
 
@@ -95,19 +100,7 @@
                 updateSunk(result.board)
             })
 
-
-            //change turn
-            $.post("/Home/ChangeTurn?gameId=" + getGameIdFromUrl())
-
-            let myTurn = document.getElementById("myTurn").value
-
-            if (myTurn == "true") {
-                document.getElementById("myTurn").value = "false";
-                document.getElementById("myTurnH2").innerHTML = "It is not your turn.";
-            } else {
-                document.getElementById("myTurn").value = "true";
-                document.getElementById("myTurnH2").innerHTML = "It is your turn!";
-            }
+            $.post("/Home/ChangeTurn?gameId=" + getParamFromUrl("id"))
         }
 
 
@@ -133,5 +126,4 @@
         </tr>
     </table>
 
-    @Html.Hidden("myTurn", "false")
 </div>

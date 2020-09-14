@@ -7,21 +7,17 @@
             let user1 = document.getElementById("user1").value
             let user2 = document.getElementById("user2").value
 
-            console.log(user1, user2)
-
-            let gameId = 0
-
             //get the game id
             $.post("/Home/GetGame?" + "userId1=" + user1 + "&userId2=" + user2, function (data) {
                 let response = JSON.parse(data)
 
-                console.log(response)
+                let gameId = response.id
 
-                gameId = response.id
+                //get the game page
+                window.location.href = window.location.href + "Home/Game?id=" + gameId + "&playerId=" + user1;
             })
 
-            //get the game page
-            window.location.href = window.location.href + "Home/Game?id=" + gameId + "&playerId=" + user1;
+            
         }
     </script>
 }

@@ -165,6 +165,7 @@ namespace Battleship.Models
         private static void pushShipsToDatabase(MySqlConnection dbConnection, Ship[] ships, int gameId)
         {
             int[] ids = BattleshipModel.getMaxIds(dbConnection);
+            Console.WriteLine(gameId);
             //open the connection
             dbConnection.Open();
 
@@ -175,17 +176,17 @@ namespace Battleship.Models
             foreach (Ship s in ships)
             {
                 string commandString = $"insert into shipNames values({shipId}, \"{s.Name}\") as new " +
-                    $"on duplicate key update shipName = new.shipName;";
+                    $"on duplicate key update shipName = new.shipName;\n";
 
                 //push the ship's hit points to the hitPoint table
                 foreach (int[] hp in s.HitPoints)
                 {
                     commandString += $"insert into hitPoints values({hitPointId}, {gameId}, {hp[0]}, {hp[1]}, false) as new " +
-                        $"on duplicate key update xPos = new.xPos, yPos = new.yPos, hit = new.hit;";
+                        $"on duplicate key update xPos = new.xPos, yPos = new.yPos, hit = new.hit;\n";
 
                     //insert the hitpoints into the ship_hitpoints join table
                     commandString += $"insert into ship_hitpoints values({gameId}, {shipId}, {hitPointId}) as new " +
-                        $"on duplicate key update hitPointId = new.hitPointId;";
+                        $"on duplicate key update hitPointId = new.hitPointId;\n";
 
                     hitPointId++;
 

@@ -57,8 +57,9 @@ namespace Battleship.Models
 
             //passing 0 for the primary key will auto-increment the field
             //this command will insert the new game and return its id
-            string commandString = $"insert into game values(0, {userId1}, {userId2}, {userId1});" +
-                $"select gameId from game where gameId = LAST_INSERT_ID();";
+            string commandString = "select ifnull(max(gameId), 0) + 1 into @nextId from game;" + 
+                $"insert into game values(@nextId, {userId1}, {userId2}, {userId1});" +
+                $"select @nextId;";
 
             using var comm = new MySqlCommand(commandString, dbConnection);
             using var reader = comm.ExecuteReader();

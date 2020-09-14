@@ -40,13 +40,17 @@
                 let shipList = result.board
                 //drawShips(document.getElementById("gridCanvas"), shipList)
 
-               updateSunk(shipList)
+                updateSunk(shipList)
 
             })
 
             updateTurn()
 
             setInterval(updateTurn, 500)
+
+            updateHits()
+
+            setInterval(updateHits, 500)
         });
 
         function updateSunk(shipList) {
@@ -101,6 +105,31 @@
             })
 
             $.post("/Home/ChangeTurn?gameId=" + getParamFromUrl("id"))
+        }
+
+        /* Scan the shiplist and place markers for every hit
+         */
+        function updateHits() {
+            $.post("/Home/GetShips?gameId=" + getParamFromUrl("id"), function (data) {
+                let canvas = document.getElementById("gridCanvas")
+
+                let response = JSON.parse(data);
+                
+                for (k in response) {
+
+                    let damageIndex = response[k]["DamageIndex"]
+                    let hitPoints = response[k]["HitPoints"]
+
+                    for (let i = 0; i < damageIndex.length; i++) {
+                        if (damageIndex[i]) {
+                            let hp = hitPoints[i];
+
+                            drawMarker(canvas, hp[0], hp[1], "#ff0000")
+                        }
+                    }
+                    
+                }
+            })
         }
 
 

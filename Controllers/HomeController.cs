@@ -65,6 +65,12 @@ namespace Battleship.Controllers
             return Ok(ret);
         }
 
+        [HttpPost]
+        public IActionResult GetShips(int gameId)
+        {
+            return Ok(JsonSerializer.Serialize(BattleshipModel.getShips(connection, gameId)));
+        }
+
         public IActionResult MyTurn(int gameId, int playerId)
         {
             bool isMyTurn = BattleshipModel.myTurn(connection, gameId, playerId);

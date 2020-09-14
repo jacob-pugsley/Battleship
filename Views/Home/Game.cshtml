@@ -27,8 +27,11 @@
                 let result = JSON.parse(data);
                 if (result.myTurn == 1) {
                     document.getElementById("myTurnH2").innerHTML = "It is your turn!";
+                    document.getElementById("resultsH2").innerHTML = "Click on the grid to attack!"
+                    document.getElementById("myTurn").value = "true"
                 } else {
                     document.getElementById("myTurnH2").innerHTML = "It is not your turn.";
+                    document.getElementById("myTurn").value = "false"
                 }
             })
         }
@@ -89,25 +92,27 @@
 
 
         function fire(gridCanvasId, x, y) {
-            let grid = getGridSquareAt(gridCanvasId, x, y)
+            if (document.getElementById("myTurn").value == "true") {
+                let grid = getGridSquareAt(gridCanvasId, x, y)
 
-            $.post("/Home/Attack?x=" + grid.gridX + "&y=" + grid.gridY + "&gameId=" + getGameIdFromUrl() +
-                "&playerId=" + getParamFromUrl("playerId"), function (data) {
-                let result = JSON.parse(data);
+                $.post("/Home/Attack?x=" + grid.gridX + "&y=" + grid.gridY + "&gameId=" + getGameIdFromUrl() +
+                    "&playerId=" + getParamFromUrl("playerId"), function (data) {
+                        let result = JSON.parse(data);
 
-                //check for hit or miss
-                if (result.hit == 1) {
-                    $("#resultsH2").text("Hit!")
-                    drawMarker(document.getElementById("gridCanvas"), grid.gridX, grid.gridY, "#ff0000")
-                } else {
-                    $("#resultsH2").text("Miss.")
-                    drawMarker(document.getElementById("gridCanvas"), grid.gridX, grid.gridY, "#ffffff")
-                }
+                        //check for hit or miss
+                        if (result.hit == 1) {
+                            $("#resultsH2").text("Hit!")
+                            drawMarker(document.getElementById("gridCanvas"), grid.gridX, grid.gridY, "#ff0000")
+                        } else {
+                            $("#resultsH2").text("Miss.")
+                            drawMarker(document.getElementById("gridCanvas"), grid.gridX, grid.gridY, "#ffffff")
+                        }
 
-                updateSunk(result.board)
-            })
+                        updateSunk(result.board)
+                    })
 
-            $.post("/Home/ChangeTurn?gameId=" + getParamFromUrl("id"))
+                $.post("/Home/ChangeTurn?gameId=" + getParamFromUrl("id"))
+            }
         }
 
         /* Scan the shiplist and place markers for every hit
@@ -163,8 +168,8 @@
 
     <h2 id="myTurnH2">Getting turn information...</h2>
     <br />
-    <h2 id="resultsH2">Click on the grid to attack!</h2>
-    
+    <h2 id="resultsH2"></h2>
+
     <br />
     <br />
 
@@ -173,5 +178,7 @@
             <td><b>Target Name</b></td><td><b>Status</b></td>
         </tr>
     </table>
+
+    @Html.Hidden("myTurn")
 
 </div>

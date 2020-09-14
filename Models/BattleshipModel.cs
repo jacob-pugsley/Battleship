@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection.Metadata.Ecma335;
+using System.Security.Policy;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -324,6 +325,40 @@ namespace Battleship.Models
             dbConnection.Close();
             return hit;
 
+        }
+
+        public static void addMiss(MySqlConnection dbConnection, int gameId, int playerId, int x, int y)
+        {
+            dbConnection.Open();
+
+            string commandString = $"insert into misses values({gameId}, {playerId}, {x}, {y});";
+
+            using var comm = new MySqlCommand(commandString, dbConnection);
+
+            comm.ExecuteReader();
+
+            dbConnection.Close();
+        }
+        
+        public static int[][] getMisses(MySqlConnection dbConnection, int gameId, int playerId)
+        {
+            dbConnection.Open();
+
+            string commandString = $"select xPos, yPos from misses where gameId = {gameId} and playerId = {playerId};";
+
+            using var comm = new MySqlCommand(commandString, dbConnection);
+
+            using var reader = comm.ExecuteReader();
+
+            List<int[]> res = new List<int[]>();
+
+            while( reader.Read())
+            {
+                res.Add(new int[2] { reader.GetInt32(0), reader.GetInt32(1) });
+            }
+
+            dbConnection.Close();
+            return res.ToArray();
         }
 
         public static bool myTurn(MySqlConnection dbConnection, int gameId, int playerId)

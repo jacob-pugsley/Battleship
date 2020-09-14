@@ -56,10 +56,17 @@ namespace Battleship.Controllers
         }
 
         [HttpPost]
-        public IActionResult Attack(int x, int y, int gameId)
+        public IActionResult Attack(int x, int y, int gameId, int playerId)
         {
 
             bool hit = BattleshipModel.checkHit(connection, gameId, x, y);
+
+            //if there wasn't a hit, add a miss to the database for the given player
+            if( !hit)
+            {
+                BattleshipModel.addMiss(connection, gameId, playerId, x, y);
+            }
+
             //return the board and whether we hit or not as JSON
             string ret = $"{{\"board\": {JsonSerializer.Serialize(BattleshipModel.getShips(connection, gameId))}, \"hit\": {(hit ? 1 : 0)}}}";
             return Ok(ret);
@@ -69,6 +76,14 @@ namespace Battleship.Controllers
         public IActionResult GetShips(int gameId)
         {
             return Ok(JsonSerializer.Serialize(BattleshipModel.getShips(connection, gameId)));
+        }
+
+        [HttpPost]
+        public IActionResult GetMisses(int gameId, int playerId)
+        {
+            int[][] res = BattleshipModel.getMisses(connection, gameId, playerId);
+
+            return Ok(JsonSerializer.Serialize(res));
         }
 
         public IActionResult MyTurn(int gameId, int playerId)

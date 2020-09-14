@@ -35,12 +35,12 @@
 
         $(document).ready(function () {
             initGrid(document.getElementById("gridCanvas"))
-            $.post("/Home/Attack?gameId=" + getParamFromUrl("id"), function (data) {
+            $.post("/Home/GetShips?gameId=" + getParamFromUrl("id"), function (data) {
                 let result = JSON.parse(data);
-                let shipList = result.board
+                //let shipList = result.board
                 //drawShips(document.getElementById("gridCanvas"), shipList)
 
-                updateSunk(shipList)
+                updateSunk(result)
 
             })
 
@@ -51,6 +51,8 @@
             updateHits()
 
             setInterval(updateHits, 500)
+
+            updateMisses()
         });
 
         function updateSunk(shipList) {
@@ -89,7 +91,8 @@
         function fire(gridCanvasId, x, y) {
             let grid = getGridSquareAt(gridCanvasId, x, y)
 
-            $.post("/Home/Attack?x=" + grid.gridX + "&y=" + grid.gridY + "&gameId=" + getGameIdFromUrl(), function (data) {
+            $.post("/Home/Attack?x=" + grid.gridX + "&y=" + grid.gridY + "&gameId=" + getGameIdFromUrl() +
+                "&playerId=" + getParamFromUrl("playerId"), function (data) {
                 let result = JSON.parse(data);
 
                 //check for hit or miss
@@ -128,6 +131,22 @@
                         }
                     }
                     
+                }
+            })
+        }
+
+        /* Update misses for the current player.
+         */
+        function updateMisses() {
+            let canvas = document.getElementById("gridCanvas")
+            let playerId = getParamFromUrl("playerId")
+            let gameId = getParamFromUrl("id")
+
+            $.post("/Home/GetMisses?gameId=" + gameId + "&playerId=" + playerId, function (data) {
+                let response = JSON.parse(data);
+
+                for (miss in response) {
+                    drawMarker(canvas, response[miss][0], response[miss][1], "#ffffff")
                 }
             })
         }

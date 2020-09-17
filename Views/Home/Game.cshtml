@@ -24,7 +24,7 @@
         function updateTurn() {
             //get the current turn information
             if (document.getElementById("victory").value != "true") {
-                $.get("/Home/MyTurn?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("playerId"), function (data) {
+                $.get("/Home/MyTurn?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("player1Id"), function (data) {
                     let result = JSON.parse(data);
                     if (result.myTurn == 1) {
                         document.getElementById("myTurnH2").innerHTML = "It is your turn!";
@@ -39,13 +39,16 @@
         }
 
         $(document).ready(function () {
-            initGrid(document.getElementById("gridCanvas"))
-            $.post("/Home/GetShips?gameId=" + getParamFromUrl("id"), function (data) {
+            //initialize both canvas objects
+            initGrid(document.getElementById("ownGridCanvas"))
+            initGrid(document.getElementById("enemyGridCanvas"))
+
+            $.post("/Home/GetShips?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("player1Id"), function (data) {
                 let result = JSON.parse(data);
                 //let shipList = result.board
                 //drawShips(document.getElementById("gridCanvas"), shipList)
-
-                updateSunk(result)
+            
+                updateSunk(result, "ownTargetStatusTable")
 
             })
 
@@ -79,8 +82,8 @@
             $.post("/Home/SetVictory?gameId=" + getParamFromUrl("id") + "&value=" + value)
         }
 
-        function updateSunk(shipList) {
-            let statusTable = document.getElementById("targetStatusTable")
+        function updateSunk(shipList, statusTableId) {
+            let statusTable = document.getElementById(statusTableId)
 
             //remove all but the first child of table
             while (statusTable.childElementCount > 1) {
@@ -118,17 +121,18 @@
             if (document.getElementById("myTurn").value == "true" && document.getElementById("victory") != "true") {
                 let grid = getGridSquareAt(gridCanvasId, x, y)
 
+                //will always be attacking player 2, which is always the other player
                 $.post("/Home/Attack?x=" + grid.gridX + "&y=" + grid.gridY + "&gameId=" + getGameIdFromUrl() +
-                    "&playerId=" + getParamFromUrl("playerId"), function (data) {
+                    "&playerId=" + getParamFromUrl("player2Id"), function (data) {
                         let result = JSON.parse(data);
 
                         //check for hit or miss
                         if (result.hit == 1) {
                             $("#resultsH2").text("Hit!")
-                            drawMarker(document.getElementById("gridCanvas"), grid.gridX, grid.gridY, "#ff0000")
+                            drawMarker(document.getElementById("enemyGridCanvas"), grid.gridX, grid.gridY, "#ff0000")
                         } else {
                             $("#resultsH2").text("Miss.")
-                            drawMarker(document.getElementById("gridCanvas"), grid.gridX, grid.gridY, "#ffffff")
+                            drawMarker(document.getElementById("enemyGridCanvas"), grid.gridX, grid.gridY, "#ffffff")
                         }
 
                         updateSunk(result.board)
@@ -141,8 +145,8 @@
         /* Scan the shiplist and place markers for every hit
          */
         function updateHits() {
-            $.post("/Home/GetShips?gameId=" + getParamFromUrl("id"), function (data) {
-                let canvas = document.getElementById("gridCanvas")
+            $.post("/Home/GetShips?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("player2Id"), function (data) {
+                let canvas = document.getElementById("ownGridCanvas")
 
                 let response = JSON.parse(data);
                 
@@ -166,8 +170,8 @@
         /* Update misses for the current player.
          */
         function updateMisses() {
-            let canvas = document.getElementById("gridCanvas")
-            let playerId = getParamFromUrl("playerId")
+            let canvas = document.getElementById("ownGridCanvas")
+            let playerId = getParamFromUrl("player1Id")
             let gameId = getParamFromUrl("id")
 
             $.post("/Home/GetMisses?gameId=" + gameId + "&playerId=" + playerId, function (data) {
@@ -185,9 +189,45 @@
 @model BattleshipModel
 
 <div class="text-center">
-    <canvas id="gridCanvas" width="640" height="480" onclick="fire('gridCanvas', event.clientX, event.clientY)">
-        <p>Your browser doesn't support this feature! Please update to the latest version of Chrome or Firefox.</p>
-    </canvas>
+    <table class="canvasTable">
+        <tr>
+            <td>
+                <h2>Your Ships</h2>
+                <canvas id="ownGridCanvas" class="gridCanvas" width="640" height="480" onclick="fire('ownGridCanvas', event.clientX, event.clientY)">
+                    <p>Your browser doesn't support this feature! Please update to the latest version of Chrome or Firefox.</p>
+                </canvas>
+            </td>
+            <td>
+                <table id="ownTargetStatusTable" style="margin: auto; width: 50%;">
+                    <tr>
+                        <td><b>Target Name</b></td>
+                        <td><b>Status</b></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <table class="canvasTable">
+        <tr>
+            <td>
+                <h2>Enemy Ships</h2>
+                <canvas id="enemyGridCanvas" class="gridCanvas" width="640" height="480" onclick="fire('enemyGridCanvas', event.clientX, event.clientY)">
+                    <p>Your browser doesn't support this feature! Please update to the latest version of Chrome or Firefox.</p>
+                </canvas>
+            </td>
+            <td>
+                <table id="enemyTargetStatusTable" style="margin: auto; width: 50%;">
+                    <tr>
+                        <td><b>Target Name</b></td>
+                        <td><b>Status</b></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+
 
     <h2 id="myTurnH2">Getting turn information...</h2>
     <br />
@@ -196,13 +236,9 @@
     <br />
     <br />
 
-    <table id="targetStatusTable" style="margin: auto; width: 50%;">
-        <tr>
-            <td><b>Target Name</b></td><td><b>Status</b></td>
-        </tr>
-    </table>
+
 
     @Html.Hidden("myTurn")
-    @Html.Hidden("victory", "true")
+    @Html.Hidden("victory", "false")
 
 </div>

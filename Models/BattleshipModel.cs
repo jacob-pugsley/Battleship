@@ -17,7 +17,7 @@ namespace Battleship.Models
         {
             //return true if there is a game with the given id, false otherwise
             dbConnection.Open();
-            string commandString = $"select * from game where gameId = {gameId};";
+            string commandString = $"select * from ship_hitpoints where gameId = {gameId};";
             using var comm = new MySqlCommand(commandString, dbConnection);
             using var reader = comm.ExecuteReader();
 
@@ -249,6 +249,37 @@ namespace Battleship.Models
             dbConnection.Close();
         }
 
+        private static int getIndexOfShipWithId(Ship[] ships, int shipId)
+        {
+            for (int i = 0; i < ships.GetLength(0); i++)
+            {
+                if( ships[i] == null)
+                {
+                    break;
+                }
+                else if (ships[i].Id == shipId)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        private static int getFirstEmptyIndex(object[] arr)
+        {
+            //return the last empty (null) index
+            //return -1 if there are no empty indexes
+
+            for( int i = 0; i < arr.GetLength(0); i++)
+            {
+                if( arr[i] == null)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
         public static Ship[] getShips(MySqlConnection dbConnection, int gameId, int playerId)
         {
             //open the connection
@@ -265,6 +296,7 @@ namespace Battleship.Models
             using var reader = comm.ExecuteReader();
 
             Ship[] tmp = new Ship[5];
+            //int indexInTmp = 0;
             List<int[]>[] hpList = new List<int[]>[5];
             List<bool>[] diList = new List<bool>[5];
 
@@ -272,21 +304,30 @@ namespace Battleship.Models
             {
                 int shipId = reader.GetInt32(0);
 
+                int indexInTmp = getIndexOfShipWithId(tmp, shipId);
 
                 //if the ship doesn't already exist, make a new ship
-                if (tmp[shipId - 1] == null)
+                if ( indexInTmp == -1 )
                 {
-                    tmp[shipId - 1] = new Ship();
-                    hpList[shipId - 1] = new List<int[]>();
-                    diList[shipId - 1] = new List<bool>();
+                    indexInTmp = getFirstEmptyIndex(tmp);
+
+                    if( indexInTmp == -1)
+                    {
+                        throw new Exception("Error: tmp array is full");
+                    }
+
+                    tmp[indexInTmp] = new Ship();
+                    hpList[indexInTmp] = new List<int[]>();
+                    diList[indexInTmp] = new List<bool>();
                 }
 
                 //then update all fields
-                tmp[shipId - 1].Name = reader.GetString(1);
+                tmp[indexInTmp].Id = shipId;
+                tmp[indexInTmp].Name = reader.GetString(1);
                 //append to the end of the lists
                 int[] hp = new int[2] { reader.GetInt32(2), reader.GetInt32(3) };
-                hpList[shipId - 1].Add(hp);
-                diList[shipId - 1].Add(reader.GetInt32(4) != 0);
+                hpList[indexInTmp].Add(hp);
+                diList[indexInTmp].Add(reader.GetInt32(4) != 0);
             }
 
             //update the sunk status and hitpoints of all ships
@@ -319,6 +360,8 @@ namespace Battleship.Models
             dbConnection.Close();
             return tmp;
         }
+
+
 
         /* Update the database if the given coordinate was a hit.
         * Return true if there was a hit, false otherwise.
@@ -484,6 +527,7 @@ namespace Battleship.Models
      */
     public class Ship
     {   
+        public int Id { get; set; }
         public string Name { get; set; }
         public int[][] HitPoints { get; set; }
         public bool[] DamageIndex { get; set; }

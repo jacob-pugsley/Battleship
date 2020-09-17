@@ -33,11 +33,9 @@ namespace Battleship.Controllers
 
         public IActionResult Game(int id)
         {
-            //BattleshipModel bm;
-            if ( BattleshipModel.getShips(connection, id) == null)
+            if ( !BattleshipModel.gameExists(connection, id) )
             {
                 Console.WriteLine("database is empty, creating new game");
-                //bm = new BattleshipModel(11, connection);
                 BattleshipModel.createRandomBoard(11, connection, id);
             }
             return View();
@@ -58,8 +56,8 @@ namespace Battleship.Controllers
         [HttpPost]
         public IActionResult Attack(int x, int y, int gameId, int playerId)
         {
-
-            bool hit = BattleshipModel.checkHit(connection, gameId, x, y);
+            //check if there was a hit against the given player
+            bool hit = BattleshipModel.checkHit(connection, gameId, playerId, x, y);
 
             //if there wasn't a hit, add a miss to the database for the given player
             if( !hit)
@@ -67,15 +65,16 @@ namespace Battleship.Controllers
                 BattleshipModel.addMiss(connection, gameId, playerId, x, y);
             }
 
-            //return the board and whether we hit or not as JSON
-            string ret = $"{{\"board\": {JsonSerializer.Serialize(BattleshipModel.getShips(connection, gameId))}, \"hit\": {(hit ? 1 : 0)}}}";
+            //return the board for the given player and whether we hit or not as JSON
+            string ret = $"{{\"board\": {JsonSerializer.Serialize(BattleshipModel.getShips(connection, gameId, playerId))}, \"hit\": {(hit ? 1 : 0)}}}";
             return Ok(ret);
         }
 
         [HttpPost]
-        public IActionResult GetShips(int gameId)
+        public IActionResult GetShips(int gameId, int playerId)
         {
-            return Ok(JsonSerializer.Serialize(BattleshipModel.getShips(connection, gameId)));
+            //get the ships owned by the given player
+            return Ok(JsonSerializer.Serialize(BattleshipModel.getShips(connection, gameId, playerId)));
         }
 
         [HttpPost]

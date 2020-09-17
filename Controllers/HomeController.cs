@@ -103,6 +103,22 @@ namespace Battleship.Controllers
             return Ok();
         }
 
+        [HttpPost]
+        public IActionResult CheckVictory(int gameId)
+        {
+            bool victory = BattleshipModel.isVictory(connection, gameId);
+
+            return Ok(JsonSerializer.Serialize(victory));
+        }
+
+        [HttpPost]
+        public IActionResult SetVictory(int gameId, bool value)
+        {
+            BattleshipModel.setVictory(connection, gameId, value);
+
+            return Ok();
+        }
+
         public IActionResult Privacy()
         {
             return View();

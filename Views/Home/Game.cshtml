@@ -23,17 +23,19 @@
 
         function updateTurn() {
             //get the current turn information
-            $.get("/Home/MyTurn?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("playerId"), function (data) {
-                let result = JSON.parse(data);
-                if (result.myTurn == 1) {
-                    document.getElementById("myTurnH2").innerHTML = "It is your turn!";
-                    document.getElementById("resultsH2").innerHTML = "Click on the grid to attack!"
-                    document.getElementById("myTurn").value = "true"
-                } else {
-                    document.getElementById("myTurnH2").innerHTML = "It is not your turn.";
-                    document.getElementById("myTurn").value = "false"
-                }
-            })
+            if (document.getElementById("victory").value != "true") {
+                $.get("/Home/MyTurn?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("playerId"), function (data) {
+                    let result = JSON.parse(data);
+                    if (result.myTurn == 1) {
+                        document.getElementById("myTurnH2").innerHTML = "It is your turn!";
+                        document.getElementById("resultsH2").innerHTML = "Click on the grid to attack!"
+                        document.getElementById("myTurn").value = "true"
+                    } else {
+                        document.getElementById("myTurnH2").innerHTML = "It is not your turn.";
+                        document.getElementById("myTurn").value = "false"
+                    }
+                })
+            }
         }
 
         $(document).ready(function () {
@@ -56,7 +58,26 @@
             setInterval(updateHits, 500)
 
             updateMisses()
+            setInterval(updateVictory, 500)
         });
+
+        function updateVictory() {
+            $.post("/Home/CheckVictory?gameId=" + getParamFromUrl("id"), function (data) {
+                let response = JSON.parse(data)
+
+                if (response) {
+                    //victory
+                    document.getElementById("victory").value = "true"
+                    document.getElementById("resultsH2").innerHTML = "Victory!"
+                } else {
+                    document.getElementById("victory").value = "false"
+                }
+            })
+        }
+
+        function setVictory(value) {
+            $.post("/Home/SetVictory?gameId=" + getParamFromUrl("id") + "&value=" + value)
+        }
 
         function updateSunk(shipList) {
             let statusTable = document.getElementById("targetStatusTable")
@@ -86,13 +107,15 @@
 
             if (allSunk) {
                 $("#resultsH2").text("Victory!")
+                //document.getElementById("victory").value = "true"
+                setVictory(true)
             }
         }
 
 
 
         function fire(gridCanvasId, x, y) {
-            if (document.getElementById("myTurn").value == "true") {
+            if (document.getElementById("myTurn").value == "true" && document.getElementById("victory") != "true") {
                 let grid = getGridSquareAt(gridCanvasId, x, y)
 
                 $.post("/Home/Attack?x=" + grid.gridX + "&y=" + grid.gridY + "&gameId=" + getGameIdFromUrl() +
@@ -180,5 +203,6 @@
     </table>
 
     @Html.Hidden("myTurn")
+    @Html.Hidden("victory", "true")
 
 </div>

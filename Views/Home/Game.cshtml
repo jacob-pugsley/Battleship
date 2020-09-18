@@ -170,6 +170,12 @@
 
                 $.post("/Home/ChangeTurn?gameId=" + getParamFromUrl("id"))
             }
+
+            $.post("/Home/GetShips?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("player1Id"), function (data) {
+                let result = JSON.parse(data)
+
+                updateSunk(result, "ownTargetStatusTable")
+            })
         }
 
         /* Scan the shiplist and place markers for every hit

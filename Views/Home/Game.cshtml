@@ -46,21 +46,49 @@
             $.post("/Home/GetShips?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("player1Id"), function (data) {
                 let result = JSON.parse(data);
                 //let shipList = result.board
-                //drawShips(document.getElementById("gridCanvas"), shipList)
+                drawShips(document.getElementById("ownGridCanvas"), result)
             
                 updateSunk(result, "ownTargetStatusTable")
-
             })
+
+            $.post("/Home/GetShips?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("player2Id"), function (data) {
+                let result = JSON.parse(data);
+                //let shipList = result.board
+                //drawShips(document.getElementById("gridCanvas"), shipList)
+
+                updateSunk(result, "enemyTargetStatusTable")
+            })
+
+            let player1Id = getParamFromUrl("player1Id")
+            let player2Id = getParamFromUrl("player2Id")
+            
 
             updateTurn()
 
             setInterval(updateTurn, 500)
 
-            updateHits()
+            //own hits on enemy grid, enemy hits on own grid
+            updateHits(player1Id, "enemyGridCanvas")
+            updateHits(player2Id, "ownGridCanvas")
 
-            setInterval(updateHits, 500)
+            setInterval(
+                function () {
+                    updateHits(player1Id, "ownGridCanvas")
+                    updateHits(player2Id, "enemyGridCanvas")
+                }
+                , 500)
 
-            updateMisses()
+            //own misses should be marked on enemy grid, enemy misses should be marked on own grid
+            updateMisses(player1Id, "ownGridCanvas")
+            updateMisses(player2Id, "enemyGridCanvas")
+
+            setInterval(
+                function () {
+                    updateMisses(player1Id, "ownGridCanvas")
+                    updateMisses(player2Id, "enemyGridCanvas")
+                }
+                , 500)
+
             setInterval(updateVictory, 500)
         });
 
@@ -119,7 +147,9 @@
 
         function fire(gridCanvasId, x, y) {
             if (document.getElementById("myTurn").value == "true" && document.getElementById("victory") != "true") {
+                console.log("firing on", x, y)
                 let grid = getGridSquareAt(gridCanvasId, x, y)
+                console.log("grid square", grid.gridX, grid.gridY)
 
                 //will always be attacking player 2, which is always the other player
                 $.post("/Home/Attack?x=" + grid.gridX + "&y=" + grid.gridY + "&gameId=" + getGameIdFromUrl() +
@@ -129,13 +159,13 @@
                         //check for hit or miss
                         if (result.hit == 1) {
                             $("#resultsH2").text("Hit!")
-                            drawMarker(document.getElementById("enemyGridCanvas"), grid.gridX, grid.gridY, "#ff0000")
+                            drawMarker(document.getElementById(gridCanvasId), grid.gridX, grid.gridY, "#ff0000")
                         } else {
                             $("#resultsH2").text("Miss.")
-                            drawMarker(document.getElementById("enemyGridCanvas"), grid.gridX, grid.gridY, "#ffffff")
+                            drawMarker(document.getElementById(gridCanvasId), grid.gridX, grid.gridY, "#ffffff")
                         }
 
-                        updateSunk(result.board)
+                        updateSunk(result.board, "enemyTargetStatusTable")
                     })
 
                 $.post("/Home/ChangeTurn?gameId=" + getParamFromUrl("id"))
@@ -144,9 +174,9 @@
 
         /* Scan the shiplist and place markers for every hit
          */
-        function updateHits() {
-            $.post("/Home/GetShips?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("player2Id"), function (data) {
-                let canvas = document.getElementById("ownGridCanvas")
+        function updateHits(playerId, gridCanvasId) {
+            $.post("/Home/GetShips?gameId=" + getParamFromUrl("id") + "&playerId=" + playerId, function (data) {
+                let canvas = document.getElementById(gridCanvasId)
 
                 let response = JSON.parse(data);
                 
@@ -169,9 +199,8 @@
 
         /* Update misses for the current player.
          */
-        function updateMisses() {
-            let canvas = document.getElementById("ownGridCanvas")
-            let playerId = getParamFromUrl("player1Id")
+        function updateMisses(playerId, gridCanvasId) {
+            let canvas = document.getElementById(gridCanvasId)
             let gameId = getParamFromUrl("id")
 
             $.post("/Home/GetMisses?gameId=" + gameId + "&playerId=" + playerId, function (data) {
@@ -193,7 +222,7 @@
         <tr>
             <td>
                 <h2>Your Ships</h2>
-                <canvas id="ownGridCanvas" class="gridCanvas" width="640" height="480" onclick="fire('ownGridCanvas', event.clientX, event.clientY)">
+                <canvas id="ownGridCanvas" class="gridCanvas" width="640" height="480" <!--onclick="fire('ownGridCanvas', event.clientX, event.clientY)"-->>
                     <p>Your browser doesn't support this feature! Please update to the latest version of Chrome or Firefox.</p>
                 </canvas>
             </td>
@@ -226,8 +255,6 @@
             </td>
         </tr>
     </table>
-
-
 
     <h2 id="myTurnH2">Getting turn information...</h2>
     <br />

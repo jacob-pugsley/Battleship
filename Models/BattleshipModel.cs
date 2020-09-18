@@ -401,7 +401,8 @@ namespace Battleship.Models
             if (hit)
             {
                 //perform a safe update by first getting the hitpoint id to be changed
-                string commandString = $"select id into @keyvar from hitpoints where gameId = {gameId} and xPos = {hitPoint[0]} and yPos = {hitPoint[1]}; " +
+                string commandString = $"select id into @keyvar from hitpoints where gameId = {gameId} and playerId = {playerId} " +
+                    $"and xPos = {hitPoint[0]} and yPos = {hitPoint[1]}; " +
                     $"update hitpoints set hit = 1 where id = @keyvar";
 
                 using var comm = new MySqlCommand(commandString, dbConnection);

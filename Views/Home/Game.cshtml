@@ -99,6 +99,7 @@
                     //victory
                     document.getElementById("victory").value = "true"
                     document.getElementById("resultsH2").innerHTML = "Victory!"
+                    document.getElementById("newGameButton").style.visibility = "visible"
                 } else {
                     document.getElementById("victory").value = "false"
                 }
@@ -217,7 +218,25 @@
             })
         }
 
+        //start a new game with the same users
+        function newGame() {
+            //delete the current game from the database (will only work if game is won)
+            $.post("/Home/DeleteGame?gameId=" + getParamFromUrl("id"))
 
+            //make a new game
+            let user1 = getParamFromUrl("player1Id")
+            let user2 = getParamFromUrl("player2Id")
+
+            //get the game id
+            $.post("/Home/GetGame?" + "userId1=" + user1 + "&userId2=" + user2, function (data) {
+                let response = JSON.parse(data)
+
+                let gameId = response.id
+
+                //get the game page
+                window.location.href = window.location.href + "Home/Game?id=" + gameId + "&player1Id=" + user1 + "&player2Id=" + user2;
+            })
+        }
     </script>
 }
 @model BattleshipModel
@@ -268,7 +287,7 @@
     <br />
     <br />
 
-
+    <button id="newGameButton" style="visibility: hidden;" onclick="newGame()" type="submit">Start New Game</button>
 
     @Html.Hidden("myTurn")
     @Html.Hidden("victory", "false")

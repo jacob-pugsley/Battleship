@@ -118,6 +118,14 @@ namespace Battleship.Controllers
             return Ok();
         }
 
+        [HttpPost]
+        public IActionResult DeleteGame(int gameId)
+        {
+            BattleshipModel.deleteGame(connection, gameId);
+
+            return Ok();
+        }
+
         public IActionResult Privacy()
         {
             return View();

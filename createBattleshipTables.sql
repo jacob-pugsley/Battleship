@@ -10,6 +10,8 @@ create table game(
 create table shipNames(
 	id int,
     shipName varchar(20),
+    gameId int,
+    foreign key(gameId) references game(gameId) on delete cascade,
     primary key(id)
 );
 
@@ -20,7 +22,7 @@ create table hitPoints(
     xPos int,
     yPos int,
     hit boolean,
-    foreign key(gameId) references game(gameId),
+    foreign key(gameId) references game(gameId) on delete cascade,
     primary key(id)
 );
 
@@ -30,9 +32,9 @@ create table ship_hitPoints(
 	gameId int,
 	shipId int,
     hitPointId int unique,
-    foreign key(shipId) references shipNames(id),
-    foreign key(hitPointId) references hitPoints(id),
-    foreign key(gameId) references game(gameId)
+    foreign key(shipId) references shipNames(id) on delete cascade,
+    foreign key(hitPointId) references hitPoints(id) on delete cascade,
+    foreign key(gameId) references game(gameId) on delete cascade
 );
 
 create table misses(
@@ -40,6 +42,6 @@ create table misses(
     playerId int,
     xPos int,
     yPos int,
-    foreign key(gameId) references game(gameId)
+    foreign key(gameId) references game(gameId) on delete cascade
 );
 

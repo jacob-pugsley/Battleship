@@ -220,7 +220,7 @@ namespace Battleship.Models
             //insert each ship into the database
             foreach (Ship s in ships)
             {
-                string commandString = $"insert into shipNames values({shipId}, \"{s.Name}\") as new " +
+                string commandString = $"insert into shipNames values({shipId}, \"{s.Name}\", {gameId}) as new " +
                     $"on duplicate key update shipName = new.shipName;\n";
 
                 //push the ship's hit points to the hitPoint table
@@ -514,6 +514,20 @@ namespace Battleship.Models
             dbConnection.Open();
 
             string commandString = $"update game set victory = {victory} where gameId = {gameId};";
+
+            using var comm = new MySqlCommand(commandString, dbConnection);
+
+            comm.ExecuteReader();
+
+            dbConnection.Close();
+        }
+
+        public static void deleteGame(MySqlConnection dbConnection, int gameId)
+        {
+            dbConnection.Open();
+      
+            //only delete games that have been won so that concurrent uses of this function do not cause problems
+            string commandString = $"delete from game where gameId = {gameId} and victory = true;";
 
             using var comm = new MySqlCommand(commandString, dbConnection);
 

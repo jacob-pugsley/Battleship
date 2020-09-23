@@ -68,8 +68,8 @@
             setInterval(updateTurn, 500)
 
             //own hits on enemy grid, enemy hits on own grid
-            updateHits(player1Id, "enemyGridCanvas")
-            updateHits(player2Id, "ownGridCanvas")
+            updateHits(player1Id, "ownGridCanvas")
+            updateHits(player2Id, "enemyGridCanvas")
 
             setInterval(
                 function () {
@@ -78,7 +78,6 @@
                 }
                 , 500)
 
-            //own misses should be marked on enemy grid, enemy misses should be marked on own grid
             updateMisses(player1Id, "ownGridCanvas")
             updateMisses(player2Id, "enemyGridCanvas")
 
@@ -228,12 +227,12 @@
         <tr>
             <td>
                 <h2>Your Ships</h2>
-                <canvas id="ownGridCanvas" class="gridCanvas" width="640" height="480" <!--onclick="fire('ownGridCanvas', event.clientX, event.clientY)"-->>
+                <canvas id="ownGridCanvas" class="gridCanvas" width="640" height="480"> <!--onclick="fire('ownGridCanvas', event.clientX, event.clientY)"-->>
                     <p>Your browser doesn't support this feature! Please update to the latest version of Chrome or Firefox.</p>
                 </canvas>
             </td>
             <td>
-                <table id="ownTargetStatusTable" style="margin: auto; width: 50%;">
+                <table class="targetStatusTable" id="ownTargetStatusTable" style="margin: auto; width: 50%;">
                     <tr>
                         <td><b>Target Name</b></td>
                         <td><b>Status</b></td>
@@ -252,7 +251,7 @@
                 </canvas>
             </td>
             <td>
-                <table id="enemyTargetStatusTable" style="margin: auto; width: 50%;">
+                <table class="targetStatusTable" id="enemyTargetStatusTable" style="margin: auto; width: 50%;">
                     <tr>
                         <td><b>Target Name</b></td>
                         <td><b>Status</b></td>

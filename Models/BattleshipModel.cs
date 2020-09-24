@@ -39,7 +39,7 @@ namespace Battleship.Models
             
             dbConnection.Open();
 
-            string commandString = $"select player1Id, player2Id from game;";
+            string commandString = $"select player1Id, player2Id from game where gameId = {gameId};";
 
             using var comm = new MySqlCommand(commandString, dbConnection);
 
@@ -478,7 +478,7 @@ namespace Battleship.Models
             string commandString = $"select currentPlayer into @cp from game where gameId = {gameId};" +
                 $"select player1Id into @p1 from game where gameId = {gameId};" +
                 $"select player2Id into @p2 from game where gameId = {gameId};" +
-                $"update game set currentPlayer = if (@cp = @p1, @p2, @p1 );";
+                $"update game set currentPlayer = if (@cp = @p1, @p2, @p1 ) where gameId = {gameId};";
 
             using var comm = new MySqlCommand(commandString, dbConnection);
 

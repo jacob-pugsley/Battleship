@@ -38,6 +38,8 @@
             }
         }
 
+        var checkVictoryInterval = 0
+
         $(document).ready(function () {
             //initialize both canvas objects
             initGrid(document.getElementById("ownGridCanvas"))
@@ -88,7 +90,7 @@
                 }
                 , 500)
 
-            setInterval(updateVictory, 500)
+            checkVictoryInterval = setInterval(updateVictory, 500)
         });
 
         function updateVictory() {
@@ -99,9 +101,21 @@
                     //victory
                     document.getElementById("victory").value = "true"
                     document.getElementById("resultsH2").innerHTML = "Victory!"
-                    document.getElementById("newGameButton").style.visibility = "visible"
-                } else {
-                    document.getElementById("victory").value = "false"
+
+                    startTimer("timerP", 30, function () {
+                        //when this timer expires delete the game and return home
+                        $.post("/Home/DeleteGame?gameId=" + getParamFromUrl("id"))
+
+                        let href = window.location.href.slice(window.location.href.indexOf("//") + 2).split("/")[0]
+
+                        let url = window.location.href.slice(0, window.location.href.indexOf("/")) + "//" + href
+
+                        window.location.href = url
+                    })
+
+                    document.getElementById("timerWarningDiv").style.visibility = "visible"
+
+                    clearInterval( checkVictoryInterval )
                 }
             })
         }
@@ -218,24 +232,27 @@
             })
         }
 
-        //start a new game with the same users
-        function newGame() {
-            //delete the current game from the database (will only work if game is won)
-            $.post("/Home/DeleteGame?gameId=" + getParamFromUrl("id"))
+        var timerInterval = 0
 
-            //make a new game
-            let user1 = getParamFromUrl("player1Id")
-            let user2 = getParamFromUrl("player2Id")
+        function startTimer(timerId, seconds, endFunction) {
+            let timer = document.getElementById(timerId)
 
-            //get the game id
-            $.post("/Home/GetGame?" + "userId1=" + user1 + "&userId2=" + user2, function (data) {
-                let response = JSON.parse(data)
+            timer.innerHTML = seconds
 
-                let gameId = response.id
+            //decrease time by one second every second
+            timerInterval = setInterval(function () {
+                let currentTime = parseInt(timer.innerHTML)
 
-                //get the game page
-                window.location.href = window.location.href + "Home/Game?id=" + gameId + "&player1Id=" + user1 + "&player2Id=" + user2;
-            })
+                currentTime--
+
+                if (currentTime <= 0) {
+                    clearInterval(timerInterval)
+                    //do something else
+                    endFunction()
+                }
+
+                timer.innerHTML = currentTime
+            }, 1000)
         }
     </script>
 }
@@ -287,7 +304,7 @@
     <br />
     <br />
 
-    <button id="newGameButton" style="visibility: hidden;" onclick="newGame()" type="submit">Start New Game</button>
+    <div id="timerWarningDiv" style="visibility: hidden">Game will be deleted in <p id="timerP"></p> seconds.</div>
 
     @Html.Hidden("myTurn")
     @Html.Hidden("victory", "false")

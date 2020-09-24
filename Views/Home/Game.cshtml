@@ -39,6 +39,9 @@
         }
 
         var checkVictoryInterval = 0
+        var updateHitsInterval = 0
+        var updateTurnInterval = 0
+        var updateMissesInterval = 0
 
         $(document).ready(function () {
             //initialize both canvas objects
@@ -67,13 +70,13 @@
 
             updateTurn()
 
-            setInterval(updateTurn, 500)
+            updateTurnInterval = setInterval(updateTurn, 500)
 
             //own hits on enemy grid, enemy hits on own grid
             updateHits(player1Id, "ownGridCanvas")
             updateHits(player2Id, "enemyGridCanvas")
 
-            setInterval(
+            updateHitsInterval = setInterval(
                 function () {
                     updateHits(player1Id, "ownGridCanvas")
                     updateHits(player2Id, "enemyGridCanvas")
@@ -83,7 +86,7 @@
             updateMisses(player1Id, "ownGridCanvas")
             updateMisses(player2Id, "enemyGridCanvas")
 
-            setInterval(
+            updateMissesInterval = setInterval(
                 function () {
                     updateMisses(player1Id, "ownGridCanvas")
                     updateMisses(player2Id, "enemyGridCanvas")
@@ -114,8 +117,12 @@
                     })
 
                     document.getElementById("timerWarningDiv").style.visibility = "visible"
+                    document.getElementById("myTurnH2").style.visibility = "hidden"
 
-                    clearInterval( checkVictoryInterval )
+                    clearInterval(checkVictoryInterval)
+                    clearInterval(updateTurnInterval)
+                    clearInterval(updateHitsInterval)
+                    clearInterval(updateMissesInterval)
                 }
             })
         }

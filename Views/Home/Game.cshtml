@@ -38,10 +38,10 @@
                     if (!victory) {
                         document.getElementById("resultsH2").innerHTML = "Click on the grid to attack!"
                     }
-                    document.getElementById("myTurn").value = "true"
+                    myTurn = true
                 } else {
                     document.getElementById("myTurnH2").innerHTML = "It is not your turn.";
-                    document.getElementById("myTurn").value = "false"
+                    myTurn = true
                 }
             })
         }
@@ -176,7 +176,7 @@
 
 
         function fire(gridCanvasId, x, y) {
-            if (document.getElementById("myTurn").value == "true" && !victory) {
+            if (myTurn && !victory) {
                 console.log("firing on", x, y)
                 let grid = getGridSquareAt(gridCanvasId, x, y)
                 console.log("grid square", grid.gridX, grid.gridY)
@@ -327,7 +327,4 @@
     <br />
 
     <div id="timerWarningDiv" style="visibility: hidden">Game will be deleted in <b><span id="timerP"></span></b> seconds.</div>
-
-    @Html.Hidden("myTurn")
-
 </div>

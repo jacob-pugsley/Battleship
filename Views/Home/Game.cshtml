@@ -21,13 +21,23 @@
             return par
         }
 
+        var checkVictoryInterval = 0
+        var updateHitsInterval = 0
+        var updateTurnInterval = 0
+        var updateMissesInterval = 0
+
+        var victory = false
+        var myTurn = false
+
         function updateTurn() {
             //get the current turn information
             $.get("/Home/MyTurn?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("player1Id"), function (data) {
                 let result = JSON.parse(data);
                 if (result.myTurn == 1) {
                     document.getElementById("myTurnH2").innerHTML = "It is your turn!";
-                    document.getElementById("resultsH2").innerHTML = "Click on the grid to attack!"
+                    if (!victory) {
+                        document.getElementById("resultsH2").innerHTML = "Click on the grid to attack!"
+                    }
                     document.getElementById("myTurn").value = "true"
                 } else {
                     document.getElementById("myTurnH2").innerHTML = "It is not your turn.";
@@ -35,13 +45,6 @@
                 }
             })
         }
-
-        var checkVictoryInterval = 0
-        var updateHitsInterval = 0
-        var updateTurnInterval = 0
-        var updateMissesInterval = 0
-
-        var victory = false
 
         $(document).ready(function () {
             //initialize both canvas objects
@@ -102,6 +105,11 @@
 
                 if (response) {
                     //victory
+                    clearInterval(checkVictoryInterval)
+                    clearInterval(updateTurnInterval)
+                    clearInterval(updateHitsInterval)
+                    clearInterval(updateMissesInterval)
+
                     $.post("/Home/GetShips?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("player1Id"), function (data) {
                         let result = JSON.parse(data)
                         updateSunk(result, "ownTargetStatusTable")
@@ -109,7 +117,7 @@
 
                     if (!victory) {
                         victory = true
-                        document.getElemenyById("resultsH2").innerHTML = "You lose."
+                        document.getElementById("resultsH2").innerHTML = "You lose."
                     }
                     
 
@@ -128,17 +136,13 @@
 
                     document.getElementById("timerWarningDiv").style.visibility = "visible"
                     document.getElementById("myTurnH2").style.visibility = "hidden"
-
-                    clearInterval(checkVictoryInterval)
-                    clearInterval(updateTurnInterval)
-                    clearInterval(updateHitsInterval)
-                    clearInterval(updateMissesInterval)
                 }
             })
         }
 
         function setVictory(value) {
             $.post("/Home/SetVictory?gameId=" + getParamFromUrl("id") + "&value=" + value)
+            victory = value
         }
 
         function updateSunk(shipList, statusTableId) {
@@ -325,6 +329,5 @@
     <div id="timerWarningDiv" style="visibility: hidden">Game will be deleted in <b><span id="timerP"></span></b> seconds.</div>
 
     @Html.Hidden("myTurn")
-    @Html.Hidden("victory", "false")
 
 </div>

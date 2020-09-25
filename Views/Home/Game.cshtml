@@ -10,8 +10,6 @@
         function getGameIdFromUrl() {
             let id = window.location.href.split("id=")[1].split("&")[0]
 
-            console.log("game id: ", id);
-
             return Number.parseInt(id)
         }
 
@@ -177,9 +175,7 @@
 
         function fire(gridCanvasId, x, y) {
             if (myTurn && !victory) {
-                console.log("firing on", x, y)
                 let grid = getGridSquareAt(gridCanvasId, x, y)
-                console.log("grid square", grid.gridX, grid.gridY)
 
                 //will always be attacking player 2, which is always the other player
                 $.post("/Home/Attack?x=" + grid.gridX + "&y=" + grid.gridY + "&gameId=" + getGameIdFromUrl() +

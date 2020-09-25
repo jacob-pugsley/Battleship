@@ -1,0 +1,326 @@
+﻿@{
+    ViewData["Title"] = "Game Page";
+}
+@section scripts
+{
+    <!--stylesheets-->
+    <link rel="stylesheet" type="text/css" href="~/css/index.css" />
+    <script src="~/js/index.js" type="text/javascript"></script>
+    <script>
+        function getGameIdFromUrl() {
+            let id = window.location.href.split("id=")[1].split("&")[0]
+
+            return Number.parseInt(id)
+        }
+
+        function getParamFromUrl(param) {
+            let par = window.location.href.split(param + "=")[1].split("&")[0]
+
+            return par
+        }
+
+        var checkVictoryInterval = 0
+        var updateHitsInterval = 0
+        var updateTurnInterval = 0
+        var updateMissesInterval = 0
+
+        var victory = false
+        var myTurn = false
+
+        function updateTurn() {
+            //get the current turn information
+            $.get("/Home/MyTurn?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("player1Id"), function (data) {
+                let result = JSON.parse(data);
+                if (result.myTurn == 1) {
+                    document.getElementById("myTurnH2").innerHTML = "It is your turn!";
+                    if (!victory) {
+                        document.getElementById("resultsH2").innerHTML = "Click on the grid to attack!"
+                    }
+                    myTurn = true
+                } else {
+                    document.getElementById("myTurnH2").innerHTML = "It is not your turn.";
+                    myTurn = true
+                }
+            })
+        }
+
+        $(document).ready(function () {
+            //initialize both canvas objects
+            initGrid(document.getElementById("ownGridCanvas"))
+            initGrid(document.getElementById("enemyGridCanvas"))
+
+            $.post("/Home/GetShips?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("player1Id"), function (data) {
+                let result = JSON.parse(data);
+                //let shipList = result.board
+                drawShips(document.getElementById("ownGridCanvas"), result)
+            
+                updateSunk(result, "ownTargetStatusTable")
+            })
+
+            $.post("/Home/GetShips?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("player2Id"), function (data) {
+                let result = JSON.parse(data);
+                //let shipList = result.board
+                //drawShips(document.getElementById("gridCanvas"), shipList)
+
+                updateSunk(result, "enemyTargetStatusTable")
+            })
+
+            let player1Id = getParamFromUrl("player1Id")
+            let player2Id = getParamFromUrl("player2Id")
+            
+
+            updateTurn()
+
+            updateTurnInterval = setInterval(updateTurn, 500)
+
+            //own hits on enemy grid, enemy hits on own grid
+            updateHits(player1Id, "ownGridCanvas")
+            updateHits(player2Id, "enemyGridCanvas")
+
+            updateHitsInterval = setInterval(
+                function () {
+                    updateHits(player1Id, "ownGridCanvas")
+                    updateHits(player2Id, "enemyGridCanvas")
+                }
+                , 500)
+
+            updateMisses(player1Id, "ownGridCanvas")
+            updateMisses(player2Id, "enemyGridCanvas")
+
+            updateMissesInterval = setInterval(
+                function () {
+                    updateMisses(player1Id, "ownGridCanvas")
+                    updateMisses(player2Id, "enemyGridCanvas")
+                }
+                , 500)
+
+            checkVictoryInterval = setInterval(updateVictory, 500)
+        });
+
+        function updateVictory() {
+            $.post("/Home/CheckVictory?gameId=" + getParamFromUrl("id"), function (data) {
+                let response = JSON.parse(data)
+
+                if (response) {
+                    //victory
+                    clearInterval(checkVictoryInterval)
+                    clearInterval(updateTurnInterval)
+                    clearInterval(updateHitsInterval)
+                    clearInterval(updateMissesInterval)
+
+                    $.post("/Home/GetShips?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("player1Id"), function (data) {
+                        let result = JSON.parse(data)
+                        updateSunk(result, "ownTargetStatusTable")
+                    })
+
+                    if (!victory) {
+                        victory = true
+                        document.getElementById("resultsH2").innerHTML = "You lose."
+                    }
+                    
+
+
+
+                    startTimer("timerP", 30, function () {
+                        //when this timer expires delete the game and return home
+                        $.post("/Home/DeleteGame?gameId=" + getParamFromUrl("id"))
+
+                        let href = window.location.href.slice(window.location.href.indexOf("//") + 2).split("/")[0]
+
+                        let url = window.location.href.slice(0, window.location.href.indexOf("/")) + "//" + href
+
+                        window.location.href = url
+                    })
+
+                    document.getElementById("timerWarningDiv").style.visibility = "visible"
+                    document.getElementById("myTurnH2").style.visibility = "hidden"
+                }
+            })
+        }
+
+        function setVictory(value) {
+            $.post("/Home/SetVictory?gameId=" + getParamFromUrl("id") + "&value=" + value)
+            victory = value
+        }
+
+        function updateSunk(shipList, statusTableId) {
+            let statusTable = document.getElementById(statusTableId)
+
+            //remove all but the first child of table
+            while (statusTable.childElementCount > 1) {
+                statusTable.removeChild(statusTable.lastChild)
+            }
+
+            let allSunk = true
+            for (i in shipList) {
+                let tr = document.createElement("tr")
+                let td = document.createElement("td")
+                td.innerHTML = shipList[i].Name
+                tr.appendChild(td)
+                td = document.createElement("td")
+                if (shipList[i].Sunk == true) {
+                    td.innerHTML = "Sunk"
+                } else {
+                    allSunk = false
+                    td.innerHTML = "Not sunk"
+                }
+                tr.appendChild(td)
+
+                statusTable.appendChild(tr)
+            }
+            return allSunk
+        }
+
+
+
+        function fire(gridCanvasId, x, y) {
+            if (myTurn && !victory) {
+                let grid = getGridSquareAt(gridCanvasId, x, y)
+
+                //will always be attacking player 2, which is always the other player
+                $.post("/Home/Attack?x=" + grid.gridX + "&y=" + grid.gridY + "&gameId=" + getGameIdFromUrl() +
+                    "&playerId=" + getParamFromUrl("player2Id"), function (data) {
+                        let result = JSON.parse(data);
+
+                        //check for hit or miss
+                        if (result.hit == 1) {
+                            $("#resultsH2").text("Hit!")
+                            drawMarker(document.getElementById(gridCanvasId), grid.gridX, grid.gridY, "#ff0000")
+                        } else {
+                            $("#resultsH2").text("Miss.")
+                            drawMarker(document.getElementById(gridCanvasId), grid.gridX, grid.gridY, "#ffffff")
+                        }
+
+                        if (updateSunk(result.board, "enemyTargetStatusTable")) {
+                            setVictory(true)
+                            document.getElementById("resultsH2").innerHTML = "You win!"
+                        }
+                    })
+
+                $.post("/Home/ChangeTurn?gameId=" + getParamFromUrl("id"))
+            }
+
+            $.post("/Home/GetShips?gameId=" + getParamFromUrl("id") + "&playerId=" + getParamFromUrl("player1Id"), function (data) {
+                let result = JSON.parse(data)
+
+                if (updateSunk(result, "ownTargetStatusTable")) {
+                    setVictory(true)
+                    document.getElementById("resultsH2").innerHTML = "You lose."
+                }
+            })
+        }
+
+        /* Scan the shiplist and place markers for every hit
+         */
+        function updateHits(playerId, gridCanvasId) {
+            $.post("/Home/GetShips?gameId=" + getParamFromUrl("id") + "&playerId=" + playerId, function (data) {
+                let canvas = document.getElementById(gridCanvasId)
+
+                let response = JSON.parse(data);
+                
+                for (k in response) {
+
+                    let damageIndex = response[k]["DamageIndex"]
+                    let hitPoints = response[k]["HitPoints"]
+
+                    for (let i = 0; i < damageIndex.length; i++) {
+                        if (damageIndex[i]) {
+                            let hp = hitPoints[i];
+
+                            drawMarker(canvas, hp[0], hp[1], "#ff0000")
+                        }
+                    }
+                    
+                }
+            })
+        }
+
+        /* Update misses for the current player.
+         */
+        function updateMisses(playerId, gridCanvasId) {
+            let canvas = document.getElementById(gridCanvasId)
+            let gameId = getParamFromUrl("id")
+
+            $.post("/Home/GetMisses?gameId=" + gameId + "&playerId=" + playerId, function (data) {
+                let response = JSON.parse(data);
+
+                for (miss in response) {
+                    drawMarker(canvas, response[miss][0], response[miss][1], "#ffffff")
+                }
+            })
+        }
+
+        var timerInterval = 0
+
+        function startTimer(timerId, seconds, endFunction) {
+            let timer = document.getElementById(timerId)
+
+            timer.innerHTML = seconds
+
+            //decrease time by one second every second
+            timerInterval = setInterval(function () {
+                let currentTime = parseInt(timer.innerHTML)
+
+                currentTime--
+
+                if (currentTime <= 0) {
+                    clearInterval(timerInterval)
+                    //do something else
+                    endFunction()
+                }
+
+                timer.innerHTML = currentTime
+            }, 1000)
+        }
+    </script>
+}
+@model BattleshipModel
+
+<div class="text-center">
+    <table class="canvasTable">
+        <tr>
+            <td>
+                <h2>Your Ships</h2>
+                <canvas id="ownGridCanvas" class="gridCanvas" width="640" height="480"> <!--onclick="fire('ownGridCanvas', event.clientX, event.clientY)"-->>
+                    <p>Your browser doesn't support this feature! Please update to the latest version of Chrome or Firefox.</p>
+                </canvas>
+            </td>
+            <td>
+                <table class="targetStatusTable" id="ownTargetStatusTable" style="margin: auto; width: 50%;">
+                    <tr>
+                        <td><b>Target Name</b></td>
+                        <td><b>Status</b></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <table class="canvasTable">
+        <tr>
+            <td>
+                <h2>Enemy Ships</h2>
+                <canvas id="enemyGridCanvas" class="gridCanvas" width="640" height="480" onclick="fire('enemyGridCanvas', event.clientX, event.clientY)">
+                    <p>Your browser doesn't support this feature! Please update to the latest version of Chrome or Firefox.</p>
+                </canvas>
+            </td>
+            <td>
+                <table class="targetStatusTable" id="enemyTargetStatusTable" style="margin: auto; width: 50%;">
+                    <tr>
+                        <td><b>Target Name</b></td>
+                        <td><b>Status</b></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <h2 id="myTurnH2">Getting turn information...</h2>
+    <br />
+    <h2 id="resultsH2"></h2>
+
+    <br />
+    <br />
+
+    <div id="timerWarningDiv" style="visibility: hidden">Game will be deleted in <b><span id="timerP"></span></b> seconds.</div>
+</div>

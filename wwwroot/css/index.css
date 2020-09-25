@@ -1,12 +1,18 @@
-﻿#gridCanvas {
+﻿.gridCanvas {
     background-color: #49bdc9;
 }
 
-#targetStatusTable tr, td{
+.targetStatusTable {
+    border: 2px solid;
+    margin: auto;
+    width: 50%;
+}
+
+.targetStatusTable td{
     border: 2px solid;
 }
 
-#targetStatusTable{
-    margin: auto !important;
-    width: 50% !important;
+.canvasTable {
+    width: 90%;
+    margin: auto;
 }

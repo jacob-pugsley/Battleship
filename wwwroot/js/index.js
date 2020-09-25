@@ -83,11 +83,15 @@ function getGridSquareAt(gridCanvasId, x, y) {
 
     let canvas = $("#" + gridCanvasId)
 
+    //mouse event coordinates do not account for page scrolling
+    let verticalScroll = $(window).scrollTop()
+    let horizontalScroll = $(window).scrollLeft()
+
     let gridWidth = canvas.width() / gridSize;
     let gridHeight = canvas.height() / gridSize;
 
-    let canvasX = x - canvas.offset().left
-    let canvasY = y - canvas.offset().top
+    let canvasX = (x + horizontalScroll) - canvas.offset().left
+    let canvasY = (y + verticalScroll) - canvas.offset().top
 
     let gridX = Math.trunc(canvasX / gridWidth)
     let gridY = Math.trunc(canvasY / gridHeight)

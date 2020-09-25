@@ -10,6 +10,14 @@ The project will have online multiplayer functionality including user profiles t
 
 See the develop branch for the latest updates!
 
+# Features in Version 2
+<ul>
+  <li>Moved game data storage from browser session to an external database</li>
+  <li>Added a second player with different ships</li>
+  <li>Added a second grid display to the main screen</li>
+  <li>Players now compete with each other and can win or lose</li>
+</ul>
+
 # Features in Version 1
 
 <ul>

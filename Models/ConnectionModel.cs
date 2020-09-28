@@ -21,10 +21,20 @@ namespace Battleship.Models
 
             //we don't know which player id is considered player 1 in the database, so we have to account for both
             //possibilities
-            string commandString = $"select gameId from game where (game.player1Id = {userId1} and game.player2Id = {userId2}) " +
-                $"or (game.player1Id = {userId2} and game.player2Id = {userId1});";
 
-            using var comm = new MySqlCommand(commandString, dbConnection);
+            //use a prepared statement for derived user input
+            using var comm = new MySqlCommand(null, dbConnection);
+            comm.CommandText = "select gameId from game where (game.player1Id = @user1 and game.player2Id = @user2) " +
+                $"or (game.player1Id = @user2 and game.player2Id = @user1);";
+
+            MySqlParameter user1 = new MySqlParameter("@user1", MySqlDbType.Int32, 0);
+            MySqlParameter user2 = new MySqlParameter("@user2", MySqlDbType.Int32, 0);
+
+            user1.Value = userId1;
+            user2.Value = userId2;
+
+            comm.Parameters.Add(user1);
+            comm.Parameters.Add(user2);
             using var reader = comm.ExecuteReader();
 
             //get all relevant game ids from the database
@@ -57,11 +67,22 @@ namespace Battleship.Models
 
             //passing 0 for the primary key will auto-increment the field
             //this command will insert the new game and return its id
-            string commandString = "select ifnull(max(gameId), 0) + 1 into @nextId from game;" + 
-                $"insert into game values(@nextId, {userId1}, {userId2}, {userId1}, false);" +
+
+            //use prepared statement for derived user input
+            using var comm = new MySqlCommand(null, dbConnection);
+
+            comm.CommandText = "select ifnull(max(gameId), 0) + 1 into @nextId from game;" +
+                $"insert into game values(@nextId, @user1, @user2, @user1, false);" +
                 $"select @nextId;";
 
-            using var comm = new MySqlCommand(commandString, dbConnection);
+            MySqlParameter user1 = new MySqlParameter("@user1", MySqlDbType.Int32, 0);
+            MySqlParameter user2 = new MySqlParameter("@user2", MySqlDbType.Int32, 0);
+
+            user1.Value = userId1;
+            user2.Value = userId2;
+
+            comm.Parameters.Add(user1);
+            comm.Parameters.Add(user2);
             using var reader = comm.ExecuteReader();
 
             int id = 0;

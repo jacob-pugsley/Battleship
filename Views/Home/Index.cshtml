@@ -4,8 +4,8 @@
 @section scripts{
     <script>
         function joinGame() {
-            let user1 = document.getElementById("user1").value
-            let user2 = document.getElementById("user2").value
+            let user1 = thisUserId
+            let user2 = document.getElementById("usernameInput").value
 
             //get the game id
             $.post("/Home/GetGame?" + "userId1=" + user1 + "&userId2=" + user2, function (data) {
@@ -19,6 +19,21 @@
 
             
         }
+
+        var thisUserId = 0;
+
+        function googleSignIn() {
+            //access google's oauth api to authenticate
+
+            //look for the returned username in the database to get the user id
+
+            //store id in variable
+
+            //hide authentication div and show signed in div
+            //document.getElementById("usernameSpan").innerHTML = "test"
+            document.getElementById("signInDiv").style.visibility = "hidden"
+            document.getElementById("authenticatedDiv").style.visibility = "visible"
+        }
     </script>
 }
 @model ConnectionModel
@@ -27,10 +42,26 @@
 
     <h1>Welcome to the home page!</h1>
 
+    <!--
     <form>
         I am user <input type="number" placeholder="ID" id="user1"/> and I want to join a game with user 
         <input type="number" placeholder="ID" id="user2"/>.
         <br />
         <button type="button" onclick="joinGame()"}>Join</button>
     </form>
+    -->
+
+    <div id="signInDiv">
+        <h2>Login is required to proceed:</h2>
+        <button type="button" id="googleSignIn" onclick="googleSignIn()">Sign in with Google</button>
+    </div>
+
+    <div id="authenticatedDiv" style="visibility: hidden">
+        <h2>You are signed in as <span id="usernameSpan"></span></h2>
+
+        Create or join game with <input type="text" id="usernameInput" placeholder="Enter Google username" />
+        <button type="button" onclick="joinGame()">Join</button>
+    </div>
+
+
 </div>

@@ -1,4 +1,8 @@
 ﻿# Open Issues
+[9] Create login page that uses Google APIs for OAuth2 authentication\
+[10] Add user profile pages that allow them to start games\
+[11] Add logic to update user profiles with win/loss information\
+[12] Allow users to place their own ships on the board
 
 # Resolved Issues
 [1] Display grid on main page that can be clicked to fire\

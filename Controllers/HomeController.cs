@@ -142,6 +142,18 @@ namespace Battleship.Controllers
             return Ok();
         }
 
+        public IActionResult GetUsername(string email)
+        {
+            //check if a user with given email address exists in the database
+            //if not, create them
+            //return username so the frontend can display it
+
+            string ret = $"{{\"username\": \"{ConnectionModel.getUsername(email, connection)}\"}}";
+
+            return Ok(ret);
+
+        }
+
         public IActionResult Privacy()
         {
             return View();

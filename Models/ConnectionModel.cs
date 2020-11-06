@@ -99,5 +99,56 @@ namespace Battleship.Models
             dbConnection.Close();
             return id;
         }
+
+        public static string getUsername(string email, MySqlConnection dbConnection)
+        {
+                //verify that user with given email exists
+                //if not, create new user entry with email as username
+                //return username
+
+                dbConnection.Open();
+
+                var comm = new MySqlCommand(null, dbConnection);
+
+                comm.CommandText = "select username from users where email = @email;";
+
+                MySqlParameter emailParam = new MySqlParameter("@email", MySqlDbType.String, 0);
+                emailParam.Value = email;
+
+                comm.Parameters.Add(emailParam);
+
+                var reader = comm.ExecuteReader();
+
+                string username = "";
+                if( reader.Read())
+                {
+                    username = reader.GetString(0);
+                }
+                else
+                {
+                    //no username found
+                    dbConnection.Close();
+                    dbConnection.Open();
+
+                    //create a new user entry with a new user id
+                    
+                    var comm2 = new MySqlCommand(null, dbConnection);
+
+
+                    comm2.CommandText = "select ifnull(max(playerId), 0) + 1 into @nextId from users;" +
+                        "insert into users values(@nextId, @email, @email, 0, 0);";
+
+                    comm2.Parameters.Add(emailParam);
+
+                    comm2.ExecuteReader();
+
+                    username = (string) emailParam.Value;
+                }
+
+                dbConnection.Close();
+
+                return username;
+        }
     }
 }
+    

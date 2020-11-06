@@ -33,7 +33,14 @@
                 console.log(profile.getName(), "signed in")
 
                 //after successful sign in, update page
-                document.getElementById("usernameSpan").innerHTML = profile.getName()
+
+                //get username
+                $.get("/Home/GetUsername?email=" + profile.getEmail(), function (data) {
+                    let response = JSON.parse(data)
+
+                    document.getElementById("usernameSpan").innerHTML = response.username
+                })
+                
                 document.getElementById("signInDiv").style.visibility = "hidden"
                 document.getElementById("authenticatedDiv").style.visibility = "visible"
             }).fail(function () {

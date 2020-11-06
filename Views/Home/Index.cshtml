@@ -8,38 +8,37 @@
     <script>
         function joinGame() {
             //get the user ids from string usernames
-            let user1 = "";
-            let user2 = "";
+            let user1 = 0;
+            let user2 = 0;
 
-            $.post("/Home/GetUserIdFromUsername?username=" + thisUsername, function (data) {
+            $.get("/Home/GetUserIdFromUsername?username=" + thisUsername, function (data) {
                 let response = JSON.parse(data);
 
                 user1 = response.id;
+
+                $.get("/Home/GetUserIdFromUsername?username=" + document.getElementById("usernameInput").value, function (data) {
+                    let response = JSON.parse(data);
+
+                    user2 = response.id;
+
+                    if (user1 != 0 && user2 != 0) {
+
+                        //get the game id
+                        $.post("/Home/GetGame?" + "userId1=" + user1 + "&userId2=" + user2, function (data) {
+                            let response = JSON.parse(data)
+
+                            let gameId = response.id
+
+                            //get the game page
+                            window.location.href = window.location.href + "Home/Game?id=" + gameId + "&player1Id=" + user1 + "&player2Id=" + user2;
+                        })
+                    }
+                }).fail(function () {
+                    alert("User 2 not found!");
+                })
             }).fail(function () {
                 alert("User 1 not found!")
             })
-
-            $.post("/Home/GetUserIdFromUsername?username=" + document.getElementById("usernameInput").value, function (data) {
-                let response = JSON.parse(data);
-
-                user2 = response.id;
-            }).fail(function () {
-                alert("User 2 not found!");
-            })
-
-            if (user1 != "" && user2 != "") {
-
-                //get the game id
-                $.post("/Home/GetGame?" + "userId1=" + user1 + "&userId2=" + user2, function (data) {
-                    let response = JSON.parse(data)
-
-                    let gameId = response.id
-
-                    //get the game page
-                    window.location.href = window.location.href + "Home/Game?id=" + gameId + "&player1Id=" + user1 + "&player2Id=" + user2;
-                })
-            }
-            
         }
 
         var thisProfile = null;

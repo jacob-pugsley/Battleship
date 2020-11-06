@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 using MySqlConnector;
@@ -149,6 +150,41 @@ namespace Battleship.Models
 
                 return username;
         }
+
+        public static int getUserIdFromUsername(string username, MySqlConnection dbConnection)
+        {
+            //return the user id or -1 if user does not exist
+
+            dbConnection.Open();
+
+            var comm = new MySqlCommand(null, dbConnection);
+
+            comm.CommandText = "select playerId from users where username = @username;";
+
+            MySqlParameter usernameParam = new MySqlParameter("@username", MySqlDbType.String, 0);
+
+            usernameParam.Value = username;
+
+            comm.Parameters.Add(usernameParam);
+
+            var reader = comm.ExecuteReader();
+
+            int userId = 0;
+
+            if (reader.Read())
+            {
+                userId = reader.GetInt32(0);
+            }
+            else
+            {
+                userId = -1;
+            }
+
+            dbConnection.Close();
+
+            return userId;
+        }
+
     }
 }
     

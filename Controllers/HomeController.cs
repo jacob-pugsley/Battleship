@@ -154,6 +154,20 @@ namespace Battleship.Controllers
 
         }
 
+        public IActionResult GetUserIdFromUsername(string username)
+        {
+            int id = ConnectionModel.getUserIdFromUsername(username, connection);
+
+            if( id == -1)
+            {
+                return Error();
+            }
+            string ret = $"{{\"id\": {id}}}";
+            return Ok(ret);
+
+
+        }
+
         public IActionResult Privacy()
         {
             return View();

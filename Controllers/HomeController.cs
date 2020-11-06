@@ -12,6 +12,7 @@ using System.Text.Json;
 using MySqlConnector;
 using System.ComponentModel;
 using System.Runtime.InteropServices.WindowsRuntime;
+using Google.Apis.Auth;
 
 namespace Battleship.Controllers
 {
@@ -122,6 +123,21 @@ namespace Battleship.Controllers
         public IActionResult DeleteGame(int gameId)
         {
             BattleshipModel.deleteGame(connection, gameId);
+
+            return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> VerifyToken(string token)
+        {
+            try
+            {
+               var res = await GoogleJsonWebSignature.ValidateAsync(token);
+            }
+            catch(InvalidJwtException)
+            {
+                return Error();
+            }
 
             return Ok();
         }

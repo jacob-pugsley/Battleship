@@ -21,28 +21,24 @@
                 //get the game page
                 window.location.href = window.location.href + "Home/Game?id=" + gameId + "&player1Id=" + user1 + "&player2Id=" + user2;
             })
-
             
         }
 
         var thisUserId = 0;
 
         function googleSignIn( googleUser ) {
-            //access google's oauth api to authenticate
-
-            //look for the returned username in the database to get the user id
-
-            //store id in variable
-
-            //hide authentication div and show signed in div
-
-            document.getElementById("signInDiv").style.visibility = "hidden"
-            document.getElementById("authenticatedDiv").style.visibility = "visible"
-
             let profile = googleUser.getBasicProfile()
-            console.log(profile.getName(), "signed in")
+            //need to verify the user's ID on the server
+            $.post("/Home/VerifyToken?token="+ googleUser.getAuthResponse().id_token, function () {
+                console.log(profile.getName(), "signed in")
 
-            document.getElementById("usernameSpan").innerHTML = profile.getName()
+                //after successful sign in, update page
+                document.getElementById("usernameSpan").innerHTML = profile.getName()
+                document.getElementById("signInDiv").style.visibility = "hidden"
+                document.getElementById("authenticatedDiv").style.visibility = "visible"
+            }).fail(function () {
+                alert("Error: invalid token")
+            });
         }
 
         function googleSignOut() {

@@ -62,7 +62,10 @@
                     thisUsername = response.username;
                 })
                 
-                document.getElementById("signInDiv").style.visibility = "hidden"
+                let signInDiv = document.getElementById("signInDiv")
+                signInDiv.style.visibility = "hidden"
+                signInDiv.style.width = "0px"
+                signInDiv.style.height = "0px"
                 document.getElementById("authenticatedDiv").style.visibility = "visible"
             }).fail(function () {
                 alert("Error: invalid token")
@@ -95,9 +98,10 @@
 
     <!--Google client ID-->
     <meta name="google-signin-client_id" content="352557329008-j4fb9ih06405e217hrbns901fkhlpif2.apps.googleusercontent.com">
-    <div id="signInDiv">
+    <div id="signInDiv" class="text-center">
         <h2>Login is required to proceed:</h2>
-        <div class="g-signin2" data-onsuccess="googleSignIn"></div>
+        <div class="g-signin2" data-onsuccess="googleSignIn"></div><br />
+        <p><i>Only your email address will be stored.</i></p>
     </div>
 
     <div id="authenticatedDiv" style="visibility: hidden">

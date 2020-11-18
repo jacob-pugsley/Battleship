@@ -101,54 +101,61 @@ namespace Battleship.Models
             return id;
         }
 
-        public static string getUsername(string email, MySqlConnection dbConnection)
+        public static string[] getUsername(string email, MySqlConnection dbConnection)
         {
-                //verify that user with given email exists
-                //if not, create new user entry with email as username
-                //return username
+            //verify that user with given email exists
+            //if not, create new user entry with email as username
+            //return username
 
+            dbConnection.Open();
+
+            var comm = new MySqlCommand(null, dbConnection);
+
+            comm.CommandText = "select username, wins, losses from users where email = @email;";
+
+            MySqlParameter emailParam = new MySqlParameter("@email", MySqlDbType.String, 0);
+            emailParam.Value = email;
+
+            comm.Parameters.Add(emailParam);
+
+            var reader = comm.ExecuteReader();
+
+            string username = "";
+            string wins = "";
+            string losses = "";
+            if( reader.Read())
+            {
+                username = reader.GetString(0);
+                wins = "" + reader.GetInt32(1);
+                losses = "" + reader.GetInt32(2);
+            }
+            else
+            {
+                //no username found
+                dbConnection.Close();
                 dbConnection.Open();
 
-                var comm = new MySqlCommand(null, dbConnection);
-
-                comm.CommandText = "select username from users where email = @email;";
-
-                MySqlParameter emailParam = new MySqlParameter("@email", MySqlDbType.String, 0);
-                emailParam.Value = email;
-
-                comm.Parameters.Add(emailParam);
-
-                var reader = comm.ExecuteReader();
-
-                string username = "";
-                if( reader.Read())
-                {
-                    username = reader.GetString(0);
-                }
-                else
-                {
-                    //no username found
-                    dbConnection.Close();
-                    dbConnection.Open();
-
-                    //create a new user entry with a new user id
+                //create a new user entry with a new user id
                     
-                    var comm2 = new MySqlCommand(null, dbConnection);
+                var comm2 = new MySqlCommand(null, dbConnection);
 
 
-                    comm2.CommandText = "select ifnull(max(playerId), 0) + 1 into @nextId from users;" +
-                        "insert into users values(@nextId, @email, @email, 0, 0);";
+                comm2.CommandText = "select ifnull(max(playerId), 0) + 1 into @nextId from users;" +
+                    "insert into users values(@nextId, @email, @email, 0, 0);";
 
-                    comm2.Parameters.Add(emailParam);
+                comm2.Parameters.Add(emailParam);
 
-                    comm2.ExecuteReader();
+                comm2.ExecuteReader();
 
-                    username = (string) emailParam.Value;
-                }
+                username = (string) emailParam.Value;
+                wins = "0";
+                losses = "0";
+            }
 
-                dbConnection.Close();
+            dbConnection.Close();
 
-                return username;
+            string[] ret = new string[] { username, wins, losses };
+            return ret;
         }
 
         public static int getUserIdFromUsername(string username, MySqlConnection dbConnection)

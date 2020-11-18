@@ -59,6 +59,13 @@
                     let response = JSON.parse(data)
 
                     document.getElementById("usernameSpan").innerHTML = response.username
+                    document.getElementById("emailSpan").innerHTML = thisProfile.getEmail()
+
+                    let winLoss = 0;
+                    if (response.losses != 0) {
+                        winLoss = wins / losses
+                    }
+                    document.getElementById("winLossSpan").innerHTML = winLoss
                     thisUsername = response.username;
                 })
                 
@@ -67,6 +74,7 @@
                 signInDiv.style.width = "0px"
                 signInDiv.style.height = "0px"
                 document.getElementById("authenticatedDiv").style.visibility = "visible"
+
             }).fail(function () {
                 alert("Error: invalid token")
             });
@@ -79,6 +87,24 @@
                 console.log('User signed out.');
             });
         }
+
+        function showUsernameInput() {
+
+            document.getElementById("showUsernameInputBtn").visibility = "hidden"
+            let span = document.getElementById("usernameSpan")
+
+            let usernameInput = document.createElement("input")
+            usernameInput.placeholder = span.innerHTML
+
+            let usernameInputButton = document.createElement("button")
+            usernameInputButton.type = "button"
+            usernameInputButton.innerHTML = "Update"
+
+            span.innerHTML = ""
+
+            span.appendChild(usernameInput)
+            span.appendChild(usernameInputButton)
+        }
     </script>
 }
 @model ConnectionModel
@@ -86,15 +112,6 @@
 <div class="text-center">
 
     <h1>Welcome to the home page!</h1>
-
-    <!--
-    <form>
-        I am user <input type="number" placeholder="ID" id="user1" /> and I want to join a game with user
-        <input type="number" placeholder="ID" id="user2" />.
-        <br />
-        <button type="button" onclick="joinGame()">Join</button>
-    </form>
-    -->
 
     <!--Google client ID-->
     <meta name="google-signin-client_id" content="352557329008-j4fb9ih06405e217hrbns901fkhlpif2.apps.googleusercontent.com">
@@ -105,7 +122,7 @@
     </div>
 
     <div id="authenticatedDiv" style="visibility: hidden">
-        <h2>You are signed in as <span id="usernameSpan"></span></h2>
+        <!--<h2>You are signed in as <span id="usernameSpan"></span></h2>-->
 
         Create or join game with <input type="text" id="usernameInput" placeholder="Enter username" />
         <button type="button" onclick="joinGame()">Join</button>
@@ -113,6 +130,11 @@
         <form>
             <button type="submit" onclick="googleSignOut()">Sign Out</button>
         </form>
+        
+        User Profile:<br />
+        Username: <span id="usernameSpan"></span> <button id="showUsernameInputBtn" type="button" onclick="showUsernameInput()">Change</button><br />
+        Email: <span id="emailSpan"></span><br />
+        Win/Loss: <span id="winLossSpan"></span>
     </div>
 
 </div>

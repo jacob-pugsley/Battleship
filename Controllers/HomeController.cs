@@ -148,7 +148,9 @@ namespace Battleship.Controllers
             //if not, create them
             //return username so the frontend can display it
 
-            string ret = $"{{\"username\": \"{ConnectionModel.getUsername(email, connection)}\"}}";
+            string[] user = ConnectionModel.getUsername(email, connection);
+
+            string ret = $"{{\"username\": \"{user[0]}\", \"wins\": {float.Parse(user[1])}, \"losses\": {float.Parse(user[2])}}}";
 
             return Ok(ret);
 

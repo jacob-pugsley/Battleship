@@ -101,6 +101,28 @@ namespace Battleship.Models
             return id;
         }
 
+        public static void updateUsername(string email, string value, MySqlConnection dbConnection)
+        {
+            Console.WriteLine(email);
+            dbConnection.Open();
+
+            var comm = new MySqlCommand(null, dbConnection);
+
+            comm.CommandText = "update users set username = @value where email = @email";
+
+            MySqlParameter valueParam = new MySqlParameter("@value", MySqlDbType.String, 0);
+            valueParam.Value = value;
+            MySqlParameter emailParam = new MySqlParameter("@email", MySqlDbType.String, 0);
+            emailParam.Value = email;
+
+            comm.Parameters.Add(valueParam);
+            comm.Parameters.Add(emailParam);
+
+            comm.ExecuteReader();
+
+            dbConnection.Close();
+        }
+
         public static string[] getUsername(string email, MySqlConnection dbConnection)
         {
             //verify that user with given email exists

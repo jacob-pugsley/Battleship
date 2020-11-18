@@ -156,6 +156,12 @@ namespace Battleship.Controllers
 
         }
 
+        public IActionResult UpdateUsername(string email, string value) {
+            ConnectionModel.updateUsername(email, value, connection);
+
+            return Ok();
+        }
+
         public IActionResult GetUserIdFromUsername(string username)
         {
             int id = ConnectionModel.getUserIdFromUsername(username, connection);

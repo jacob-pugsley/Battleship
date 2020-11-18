@@ -89,7 +89,7 @@
         }
 
         function showUsernameInput() {
-
+            console.log("showing username input")
             document.getElementById("showUsernameInputBtn").visibility = "hidden"
             let span = document.getElementById("usernameSpan")
 
@@ -98,12 +98,21 @@
 
             let usernameInputButton = document.createElement("button")
             usernameInputButton.type = "button"
+            usernameInputButton.setAttribute('onclick', 'updateUsername()')
             usernameInputButton.innerHTML = "Update"
 
             span.innerHTML = ""
 
             span.appendChild(usernameInput)
             span.appendChild(usernameInputButton)
+        }
+
+        function updateUsername() {
+            console.log("updating username")
+
+            let newUser = document.getElementById("usernameSpan").firstChild.value
+
+            $.post("/Home/UpdateUsername?email=" + thisProfile.getEmail() + "&value=" + newUser)
         }
     </script>
 }

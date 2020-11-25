@@ -95,15 +95,23 @@
 
         function signOut() {
             console.log("signed out")
-            if (!guest) {
+            if (!isGuest) {
                 var auth2 = gapi.auth2.getAuthInstance();
                 auth2.signOut().then(function () {
                     console.log('User signed out.');
                 });
             } else {
                 //delete guest user from db
+                deleteUser(thisUsername)
                 thisUsername = null
             }
+        }
+
+        function deleteUser(username) {
+            username = encodeURIComponent(username);
+            $.post("/Home/DeleteUser?username=" + username).then(function () {
+                window.location.href = window.location.href.substring(0, window.location.href.indexOf(window.location.pathname));
+            });
         }
 
         function guestSignIn() {
@@ -115,6 +123,8 @@
                 console.log(response.username)
 
                 thisUsername = response.username
+
+                console.log("this username: ", thisUsername)
 
                 document.getElementById("usernameSpan").innerHTML = thisUsername
 
@@ -183,7 +193,7 @@
         <button type="button" onclick="joinGame()">Join</button>
         <br /><br />
         <form>
-            <button type="submit" onclick="signOut()">Sign Out</button>
+            <button type="button" onclick="signOut()">Sign Out</button>
         </form>
         
         User Profile:<br />

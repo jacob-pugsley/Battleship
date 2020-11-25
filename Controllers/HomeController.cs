@@ -181,9 +181,13 @@ namespace Battleship.Controllers
         {
             string username = ConnectionModel.createGuestUser(connection);
 
-            Console.WriteLine(username);
-
             return Ok($"{{\"username\": \"{username}\"}}");
+        }
+
+        [HttpPost]
+        public void DeleteUser(string username)
+        {
+            ConnectionModel.deleteUser(System.Web.HttpUtility.UrlDecode(username), connection);
         }
 
         public IActionResult Privacy()

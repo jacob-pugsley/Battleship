@@ -238,6 +238,26 @@ namespace Battleship.Models
             return username;
         }
 
+        public static void deleteUser(string username, MySqlConnection dbConnection)
+        {
+            Console.WriteLine("deleting user with name " + username);
+            dbConnection.Open();
+
+            var comm = new MySqlCommand(null, dbConnection);
+
+            comm.CommandText = "delete from users where username = @username;";
+
+            MySqlParameter userParam = new MySqlParameter("@username", MySqlDbType.String);
+
+            userParam.Value = username;
+
+            comm.Parameters.Add(userParam);
+
+            comm.ExecuteReader();
+
+            dbConnection.Close();
+        }
+
     }
 }
     

@@ -45,6 +45,7 @@
 
         var thisProfile = null;
         var thisUsername = "";
+        var isGuest = false;
 
         function googleSignIn( googleUser ) {
             thisProfile = googleUser.getBasicProfile()
@@ -67,6 +68,16 @@
                     }
                     document.getElementById("winLossSpan").innerHTML = winLoss
                     thisUsername = response.username;
+
+                    //add button to change username
+                    let span = document.getElementById("usernameSpan")
+                    let btn = document.createElement("button")
+                    //<button id="showUsernameInputBtn" type="button" onclick="showUsernameInput()">Change</button>
+                    btn.setAttribute("type", "button")
+                    btn.setAttribute("onclick", "showUsernameInput()")
+                    btn.innerHTML = "Change"
+
+                    span.appendChild(btn);
                 })
                 
                 let signInDiv = document.getElementById("signInDiv")
@@ -75,17 +86,24 @@
                 signInDiv.style.height = "0px"
                 document.getElementById("authenticatedDiv").style.visibility = "visible"
 
+
+
             }).fail(function () {
                 alert("Error: invalid token")
             });
         }
 
-        function googleSignOut() {
+        function signOut() {
             console.log("signed out")
-            var auth2 = gapi.auth2.getAuthInstance();
-            auth2.signOut().then(function () {
-                console.log('User signed out.');
-            });
+            if (!guest) {
+                var auth2 = gapi.auth2.getAuthInstance();
+                auth2.signOut().then(function () {
+                    console.log('User signed out.');
+                });
+            } else {
+                //delete guest user from db
+                thisUsername = null
+            }
         }
 
         function guestSignIn() {
@@ -106,6 +124,10 @@
                 signInDiv.style.width = "0px"
                 signInDiv.style.height = "0px"
                 document.getElementById("authenticatedDiv").style.visibility = "visible"
+
+                isGuest = true;
+
+
                 
             })
         }
@@ -161,11 +183,11 @@
         <button type="button" onclick="joinGame()">Join</button>
         <br /><br />
         <form>
-            <button type="submit" onclick="googleSignOut()">Sign Out</button>
+            <button type="submit" onclick="signOut()">Sign Out</button>
         </form>
         
         User Profile:<br />
-        Username: <span id="usernameSpan"></span> <button id="showUsernameInputBtn" type="button" onclick="showUsernameInput()">Change</button><br />
+        Username: <span id="usernameSpan"></span> <br />
         Email: <span id="emailSpan"></span><br />
         Win/Loss: <span id="winLossSpan"></span>
     </div>

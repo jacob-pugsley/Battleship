@@ -176,6 +176,16 @@ namespace Battleship.Controllers
 
         }
 
+        //[HttpPost]
+        public IActionResult CreateGuest()
+        {
+            string username = ConnectionModel.createGuestUser(connection);
+
+            Console.WriteLine(username);
+
+            return Ok($"{{\"username\": \"{username}\"}}");
+        }
+
         public IActionResult Privacy()
         {
             return View();

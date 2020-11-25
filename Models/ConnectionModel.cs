@@ -214,6 +214,30 @@ namespace Battleship.Models
             return userId;
         }
 
+        public static string createGuestUser(MySqlConnection dbConnection)
+        {
+            dbConnection.Open();
+
+            string commandString = "select ifnull(max(playerId), 0) + 1 into @nextId from users;" +
+            "insert into users values(@nextId, concat('Guest#', @nextId), '', 0, 0);" +
+            "select username from users where playerId = @nextId;";
+
+            var comm = new MySqlCommand(commandString, dbConnection);
+
+            var reader = comm.ExecuteReader();
+
+            string username = "";
+
+            if( reader.Read())
+            {
+                username = reader.GetString(0);
+            }
+
+            dbConnection.Close();
+
+            return username;
+        }
+
     }
 }
     

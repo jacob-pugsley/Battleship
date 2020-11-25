@@ -88,6 +88,28 @@
             });
         }
 
+        function guestSignIn() {
+            //create a user ID like Guest#0000
+            console.log("signing in as guest")
+            $.get("/Home/CreateGuest", function ( data ) {
+                let response = JSON.parse(data)
+
+                console.log(response.username)
+
+                thisUsername = response.username
+
+                document.getElementById("usernameSpan").innerHTML = thisUsername
+
+                
+                let signInDiv = document.getElementById("signInDiv")
+                signInDiv.style.visibility = "hidden"
+                signInDiv.style.width = "0px"
+                signInDiv.style.height = "0px"
+                document.getElementById("authenticatedDiv").style.visibility = "visible"
+                
+            })
+        }
+
         function showUsernameInput() {
             console.log("showing username input")
             document.getElementById("showUsernameInputBtn").visibility = "hidden"
@@ -128,6 +150,8 @@
         <h2>Login is required to proceed:</h2>
         <div class="g-signin2" data-onsuccess="googleSignIn"></div><br />
         <p><i>Only your email address will be stored.</i></p>
+        <br /><br />
+        Or <a href="#" onclick="guestSignIn()">continue as guest.</a>
     </div>
 
     <div id="authenticatedDiv" style="visibility: hidden">

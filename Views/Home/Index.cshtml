@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Landing page";
 }
 @section scripts{
     <!--Google Platform Library-->
@@ -80,7 +80,7 @@
                     span.appendChild(btn);
                 })
                 
-                let signInDiv = document.getElementById("signInDiv")
+                let signInDiv = document.getElementById("signInCard")
                 signInDiv.style.visibility = "hidden"
                 signInDiv.style.width = "0px"
                 signInDiv.style.height = "0px"
@@ -131,7 +131,7 @@
                 document.getElementById("usernameSpan").innerHTML = thisUsername
 
                 
-                let signInDiv = document.getElementById("signInDiv")
+                let signInDiv = document.getElementById("signInCard")
                 signInDiv.style.visibility = "hidden"
                 signInDiv.style.width = "0px"
                 signInDiv.style.height = "0px"
@@ -190,20 +190,21 @@
 
 <div class="text-center">
 
-    <h1>Welcome to the home page!</h1>
+    <h1>Battleship!</h1>
 
     <!--Google client ID-->
     <meta name="google-signin-client_id" content="352557329008-j4fb9ih06405e217hrbns901fkhlpif2.apps.googleusercontent.com">
-    <div id="signInDiv" class="text-center">
-        <h2>Login is required to proceed:</h2>
-        <div class="g-signin2" data-onsuccess="googleSignIn"></div><br />
-        <p><i>Only your email address will be stored.</i></p>
-        <br /><br />
-        Or <a href="#" onclick="guestSignIn()">continue as guest.</a>
+    <div class="card" id="signInCard">
+        <div class="card-header">
+            Sign In
+        </div>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item"><div class="g-signin2" data-onsuccess="googleSignIn" data-longtitle="true"></div></li>
+            <li class="list-group-item"><div id="guestSignInBtn" onclick="guestSignIn()">Continue as guest</div></li>
+        </ul>
     </div>
 
     <div id="authenticatedDiv" style="visibility: hidden">
-        <!--<h2>You are signed in as <span id="usernameSpan"></span></h2>-->
 
         Create or join game with <input type="text" id="usernameInput" placeholder="Enter username" />
         <button type="button" onclick="joinGame()">Join</button>
@@ -211,7 +212,7 @@
         
         <div class="card" id="profileCard">
             <div class="card-header">
-                <b>User Profile</b><button id="signOutBtn" type="button" onclick="signOut()">Sign Out</button>
+                User Profile<button id="signOutBtn" type="button" onclick="signOut()">Sign Out</button>
             </div>
             <ul class="list-group list-group-flush">
                 <li class="list-group-item">Username: <span id="usernameSpan"></span></li>
@@ -219,5 +220,12 @@
                 <li class="list-group-item">Win/Loss: <span id="winLossSpan"></span></li>
             </ul>
         </div>
+    </div>
+
+    <div>
+        Signing in with Google allows you to choose a username and save your game statistics. 
+        Your email address will be stored for identification puposes only.<br /><br />
+
+        Guest users have access to all game functionality but no data will be stored.
     </div>
 </div>

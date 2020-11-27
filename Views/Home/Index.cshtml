@@ -5,7 +5,7 @@
     <!--Google Platform Library-->
     <script src="https://apis.google.com/js/platform.js" async defer></script>
     
-    <link rel="stylesheet" href="~/css/index.css" />
+    <link rel="stylesheet" type="text/css" href="~/css/index.css" />
 
     <script>
         function joinGame() {
@@ -72,7 +72,7 @@
                     //add button to change username
                     let span = document.getElementById("usernameSpan")
                     let btn = document.createElement("button")
-                    //<button id="showUsernameInputBtn" type="button" onclick="showUsernameInput()">Change</button>
+                    btn.id = "showUsernameInputBtn"
                     btn.setAttribute("type", "button")
                     btn.setAttribute("onclick", "showUsernameInput()")
                     btn.innerHTML = "Change"
@@ -105,6 +105,8 @@
                 deleteUser(thisUsername)
                 thisUsername = null
             }
+
+            window.location.href = window.location.href.substring(0, window.location.href.indexOf(window.location.pathname));
         }
 
         function deleteUser(username) {
@@ -148,7 +150,7 @@
             let span = document.getElementById("usernameSpan")
 
             let usernameInput = document.createElement("input")
-            usernameInput.placeholder = span.innerHTML
+            usernameInput.placeholder = span.innerHTML.split("<")[0]
 
             let usernameInputButton = document.createElement("button")
             usernameInputButton.type = "button"
@@ -167,6 +169,20 @@
             let newUser = document.getElementById("usernameSpan").firstChild.value
 
             $.post("/Home/UpdateUsername?email=" + thisProfile.getEmail() + "&value=" + newUser)
+
+            let userSpan = document.getElementById("usernameSpan")
+
+            userSpan.innerHTML = newUser;
+
+            if (!isGuest) {
+                let btn = document.createElement("button")
+                btn.id = "showUsernameInputBtn"
+                btn.setAttribute("type", "button")
+                btn.setAttribute("onclick", "showUsernameInput()")
+                btn.innerHTML = "Change"
+
+                userSpan.appendChild(btn);
+            }
         }
     </script>
 }
@@ -192,14 +208,16 @@
         Create or join game with <input type="text" id="usernameInput" placeholder="Enter username" />
         <button type="button" onclick="joinGame()">Join</button>
         <br /><br />
-        <form>
-            <button type="button" onclick="signOut()">Sign Out</button>
-        </form>
         
-        User Profile:<br />
-        Username: <span id="usernameSpan"></span> <br />
-        Email: <span id="emailSpan"></span><br />
-        Win/Loss: <span id="winLossSpan"></span>
+        <div class="card" id="profileCard">
+            <div class="card-header">
+                <b>User Profile</b><button id="signOutBtn" type="button" onclick="signOut()">Sign Out</button>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">Username: <span id="usernameSpan"></span></li>
+                <li class="list-group-item">Email: <span id="emailSpan"></span></li>
+                <li class="list-group-item">Win/Loss: <span id="winLossSpan"></span></li>
+            </ul>
+        </div>
     </div>
-
 </div>

@@ -2,11 +2,12 @@
     margin: auto;
 }
 
-#profileDiv{
+#profileCard{
+    text-align: left;
+    width: 40%;
     margin: auto;
-    width: 50%;
 }
 
-#profileList{
-    text-decoration: none;
+#profileCard button{
+    float: right;
 }

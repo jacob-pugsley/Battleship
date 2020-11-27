@@ -13,12 +13,12 @@
             let user1 = 0;
             let user2 = 0;
 
-            $.get("/Home/GetUserIdFromUsername?username=" + thisUsername, function (data) {
+            $.get("/Home/GetUserIdFromUsername?username=" + encodeURIComponent(thisUsername), function (data) {
                 let response = JSON.parse(data);
 
                 user1 = response.id;
 
-                $.get("/Home/GetUserIdFromUsername?username=" + document.getElementById("usernameInput").value, function (data) {
+                $.get("/Home/GetUserIdFromUsername?username=" + encodeURIComponent(document.getElementById("usernameInput").value), function (data) {
                     let response = JSON.parse(data);
 
                     user2 = response.id;

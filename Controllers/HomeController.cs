@@ -164,7 +164,7 @@ namespace Battleship.Controllers
 
         public IActionResult GetUserIdFromUsername(string username)
         {
-            int id = ConnectionModel.getUserIdFromUsername(username, connection);
+            int id = ConnectionModel.getUserIdFromUsername(System.Web.HttpUtility.UrlDecode(username), connection);
 
             if( id == -1)
             {

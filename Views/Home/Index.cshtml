@@ -64,7 +64,9 @@
 
                     let winLoss = 0;
                     if (response.losses != 0) {
-                        winLoss = wins / losses
+                        winLoss = response.wins / response.losses
+                    } else {
+                        winLoss = response.wins
                     }
                     document.getElementById("winLossSpan").innerHTML = winLoss
                     thisUsername = response.username;

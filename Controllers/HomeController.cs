@@ -190,6 +190,12 @@ namespace Battleship.Controllers
             ConnectionModel.deleteUser(System.Web.HttpUtility.UrlDecode(username), connection);
         }
 
+        [HttpPost]
+        public void UpdateStats(int playerId, bool won)
+        {
+            BattleshipModel.updateStats(connection, playerId, won);
+        }
+
         public IActionResult Privacy()
         {
             return View();

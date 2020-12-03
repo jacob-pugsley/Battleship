@@ -10,6 +10,13 @@ The project will have online multiplayer functionality including user profiles t
 
 See the develop branch for the latest updates!
 
+# Features in Version 3
+<ul>
+  <li>Implemented user profiles with Google's OAuth API</li>
+  <li>Users can choose to sign in under a guest account, which still allows them to start/join games with anyone</li>
+  <li>Users who sign in with Google can track their win/loss ratio and change their username</li>
+</ul>
+
 # Features in Version 2
 <ul>
   <li>Moved game data storage from browser session to an external database</li>

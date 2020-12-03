@@ -4,7 +4,7 @@
 @section scripts
 {
     <!--stylesheets-->
-    <link rel="stylesheet" type="text/css" href="~/css/index.css" />
+    <link rel="stylesheet" type="text/css" href="~/css/game.css" />
     <script src="~/js/index.js" type="text/javascript"></script>
     <script>
         function getGameIdFromUrl() {
@@ -116,6 +116,12 @@
                     if (!victory) {
                         victory = true
                         document.getElementById("resultsH2").innerHTML = "You lose."
+
+                        //update loss count in database
+                        $.post("/Home/UpdateStats?playerId=" + getParamFromUrl("player1Id") + "&won=false");
+                    } else {
+                        //update win count in database
+                        $.post("/Home/UpdateStats?playerId=" + getParamFromUrl("player1Id") + "&won=true");
                     }
                     
 

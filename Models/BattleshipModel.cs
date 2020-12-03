@@ -535,6 +535,20 @@ namespace Battleship.Models
 
             dbConnection.Close();
         }
+
+        public static void updateStats(MySqlConnection dbConnection, int playerId, bool won)
+        {
+            dbConnection.Open();
+
+            var comm = new MySqlCommand(dbConnection, null);
+
+            comm.CommandText = won ? $"update users set wins = wins + 1 where playerId = {playerId};" :
+                $"update users set losses = losses + 1 where playerId = {playerId};";
+
+            comm.ExecuteReader();
+
+            dbConnection.Close();
+        }
     }
 
     /* Represents a ship with base location and

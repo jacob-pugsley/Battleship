@@ -12,6 +12,7 @@ using System.Text.Json;
 using MySqlConnector;
 using System.ComponentModel;
 using System.Runtime.InteropServices.WindowsRuntime;
+using Google.Apis.Auth;
 
 namespace Battleship.Controllers
 {
@@ -124,6 +125,75 @@ namespace Battleship.Controllers
             BattleshipModel.deleteGame(connection, gameId);
 
             return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> VerifyToken(string token)
+        {
+            try
+            {
+               var res = await GoogleJsonWebSignature.ValidateAsync(token);
+            }
+            catch(InvalidJwtException)
+            {
+                return Error();
+            }
+
+            return Ok();
+        }
+
+        public IActionResult GetUsername(string email)
+        {
+            //check if a user with given email address exists in the database
+            //if not, create them
+            //return username so the frontend can display it
+
+            string[] user = ConnectionModel.getUsername(email, connection);
+
+            string ret = $"{{\"username\": \"{user[0]}\", \"wins\": {float.Parse(user[1])}, \"losses\": {float.Parse(user[2])}}}";
+
+            return Ok(ret);
+
+        }
+
+        public IActionResult UpdateUsername(string email, string value) {
+            ConnectionModel.updateUsername(email, value, connection);
+
+            return Ok();
+        }
+
+        public IActionResult GetUserIdFromUsername(string username)
+        {
+            int id = ConnectionModel.getUserIdFromUsername(System.Web.HttpUtility.UrlDecode(username), connection);
+
+            if( id == -1)
+            {
+                return Error();
+            }
+            string ret = $"{{\"id\": {id}}}";
+            return Ok(ret);
+
+
+        }
+
+        //[HttpPost]
+        public IActionResult CreateGuest()
+        {
+            string username = ConnectionModel.createGuestUser(connection);
+
+            return Ok($"{{\"username\": \"{username}\"}}");
+        }
+
+        [HttpPost]
+        public void DeleteUser(string username)
+        {
+            ConnectionModel.deleteUser(System.Web.HttpUtility.UrlDecode(username), connection);
+        }
+
+        [HttpPost]
+        public void UpdateStats(int playerId, bool won)
+        {
+            BattleshipModel.updateStats(connection, playerId, won);
         }
 
         public IActionResult Privacy()

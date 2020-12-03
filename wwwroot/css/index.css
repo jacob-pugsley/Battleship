@@ -1,18 +1,43 @@
-﻿.gridCanvas {
-    background-color: #49bdc9;
+﻿.g-signin2 > div{
+    float: left;
 }
 
-.targetStatusTable {
-    border: 2px solid;
+#gSignInDesc{
+    float: left;
+    margin-left: 10px;
+}
+
+#profileCard{
+    text-align: left;
+    width: 40%;
     margin: auto;
-    width: 50%;
 }
 
-.targetStatusTable td{
-    border: 2px solid;
-}
-
-.canvasTable {
-    width: 90%;
+#signInCard{
+    text-align: center;
+    width: fit-content;
     margin: auto;
+}
+
+#profileCard button{
+    float: right;
+}
+
+#guestSignInBtn {
+    /* copying style of Google button */
+    font-family: Roboto,arial,sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: .21px;
+    vertical-align: top;
+    box-shadow: 0 2px 4px 0 rgba(0,0,0,.25);
+    transition: background-color .218s,border-color .218s,box-shadow .218s;
+    color: #757575;
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 34px;
+    height: 36px;
+    width: 180px;
+
+    padding-left: 6px;
 }

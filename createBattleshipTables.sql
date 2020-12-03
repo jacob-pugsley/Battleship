@@ -45,3 +45,11 @@ create table misses(
     foreign key(gameId) references game(gameId) on delete cascade
 );
 
+create table users(
+	playerId int,
+    username varchar(50),
+    email varchar(100),
+    wins int,
+    losses int,
+    primary key(playerId)
+);

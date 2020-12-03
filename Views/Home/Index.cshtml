@@ -1,23 +1,190 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Landing page";
 }
 @section scripts{
+    <!--Google Platform Library-->
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    
+    <link rel="stylesheet" type="text/css" href="~/css/index.css" />
+
     <script>
         function joinGame() {
-            let user1 = document.getElementById("user1").value
-            let user2 = document.getElementById("user2").value
+            //get the user ids from string usernames
+            let user1 = 0;
+            let user2 = 0;
 
-            //get the game id
-            $.post("/Home/GetGame?" + "userId1=" + user1 + "&userId2=" + user2, function (data) {
+            $.get("/Home/GetUserIdFromUsername?username=" + encodeURIComponent(thisUsername), function (data) {
+                let response = JSON.parse(data);
+
+                user1 = response.id;
+
+                $.get("/Home/GetUserIdFromUsername?username=" + encodeURIComponent(document.getElementById("usernameInput").value), function (data) {
+                    let response = JSON.parse(data);
+
+                    user2 = response.id;
+
+                    if (user1 != 0 && user2 != 0) {
+
+                        //get the game id
+                        $.post("/Home/GetGame?" + "userId1=" + user1 + "&userId2=" + user2, function (data) {
+                            let response = JSON.parse(data)
+
+                            let gameId = response.id
+
+                            //get the game page
+                            window.location.href = window.location.href + "Home/Game?id=" + gameId + "&player1Id=" + user1 + "&player2Id=" + user2;
+                        })
+                    }
+                }).fail(function () {
+                    alert("User 2 not found!");
+                })
+            }).fail(function () {
+                alert("User 1 not found!")
+            })
+        }
+
+        var thisProfile = null;
+        var thisUsername = "";
+        var isGuest = false;
+
+        function googleSignIn( googleUser ) {
+            thisProfile = googleUser.getBasicProfile()
+            //need to verify the user's ID on the server
+            $.post("/Home/VerifyToken?token="+ googleUser.getAuthResponse().id_token, function () {
+                console.log(thisProfile.getName(), "signed in")
+
+                //after successful sign in, update page
+
+                //get username
+                $.get("/Home/GetUsername?email=" + thisProfile.getEmail(), function (data) {
+                    let response = JSON.parse(data)
+
+                    document.getElementById("usernameSpan").innerHTML = response.username
+                    document.getElementById("emailSpan").innerHTML = thisProfile.getEmail()
+
+                    let winLoss = 0;
+                    if (response.losses != 0) {
+                        winLoss = response.wins / response.losses
+                    } else {
+                        winLoss = response.wins
+                    }
+                    document.getElementById("winLossSpan").innerHTML = winLoss
+                    thisUsername = response.username;
+
+                    //add button to change username
+                    let span = document.getElementById("usernameSpan")
+                    let btn = document.createElement("button")
+                    btn.id = "showUsernameInputBtn"
+                    btn.setAttribute("type", "button")
+                    btn.setAttribute("onclick", "showUsernameInput()")
+                    btn.innerHTML = "Change"
+
+                    span.appendChild(btn);
+                })
+                
+                let signInDiv = document.getElementById("signInCard")
+                signInDiv.style.visibility = "hidden"
+                signInDiv.style.width = "0px"
+                signInDiv.style.height = "0px"
+                document.getElementById("authenticatedDiv").style.visibility = "visible"
+
+
+
+            }).fail(function () {
+                alert("Error: invalid token")
+            });
+        }
+
+        function signOut() {
+            console.log("signed out")
+            if (!isGuest) {
+                var auth2 = gapi.auth2.getAuthInstance();
+                auth2.signOut().then(function () {
+                    console.log('User signed out.');
+                });
+            } else {
+                //delete guest user from db
+                deleteUser(thisUsername)
+                thisUsername = null
+            }
+
+            window.location.href = window.location.href.substring(0, window.location.href.indexOf(window.location.pathname));
+        }
+
+        function deleteUser(username) {
+            username = encodeURIComponent(username);
+            $.post("/Home/DeleteUser?username=" + username).then(function () {
+                window.location.href = window.location.href.substring(0, window.location.href.indexOf(window.location.pathname));
+            });
+        }
+
+        function guestSignIn() {
+            //create a user ID like Guest#0000
+            console.log("signing in as guest")
+            $.get("/Home/CreateGuest", function ( data ) {
                 let response = JSON.parse(data)
 
-                let gameId = response.id
+                console.log(response.username)
 
-                //get the game page
-                window.location.href = window.location.href + "Home/Game?id=" + gameId + "&player1Id=" + user1 + "&player2Id=" + user2;
+                thisUsername = response.username
+
+                console.log("this username: ", thisUsername)
+
+                document.getElementById("usernameSpan").innerHTML = thisUsername
+
+                
+                let signInDiv = document.getElementById("signInCard")
+                signInDiv.style.visibility = "hidden"
+                signInDiv.style.width = "0px"
+                signInDiv.style.height = "0px"
+                document.getElementById("authenticatedDiv").style.visibility = "visible"
+
+                isGuest = true;
+
+
+                
             })
+        }
 
-            
+        function showUsernameInput() {
+            console.log("showing username input")
+            document.getElementById("showUsernameInputBtn").visibility = "hidden"
+            let span = document.getElementById("usernameSpan")
+
+            let usernameInput = document.createElement("input")
+            usernameInput.placeholder = span.innerHTML.split("<")[0]
+
+            let usernameInputButton = document.createElement("button")
+            usernameInputButton.type = "button"
+            usernameInputButton.setAttribute('onclick', 'updateUsername()')
+            usernameInputButton.innerHTML = "Update"
+
+            span.innerHTML = ""
+
+            span.appendChild(usernameInput)
+            span.appendChild(usernameInputButton)
+        }
+
+        function updateUsername() {
+            console.log("updating username")
+
+            let newUser = document.getElementById("usernameSpan").firstChild.value
+
+            $.post("/Home/UpdateUsername?email=" + thisProfile.getEmail() + "&value=" + newUser)
+
+            let userSpan = document.getElementById("usernameSpan")
+
+            userSpan.innerHTML = newUser;
+
+            if (!isGuest) {
+                let btn = document.createElement("button")
+                btn.id = "showUsernameInputBtn"
+                btn.setAttribute("type", "button")
+                btn.setAttribute("onclick", "showUsernameInput()")
+                btn.innerHTML = "Change"
+
+                userSpan.appendChild(btn);
+            }
         }
     </script>
 }
@@ -25,12 +192,42 @@
 
 <div class="text-center">
 
-    <h1>Welcome to the home page!</h1>
+    <h1>Battleship!</h1>
 
-    <form>
-        I am user <input type="number" placeholder="ID" id="user1"/> and I want to join a game with user 
-        <input type="number" placeholder="ID" id="user2"/>.
-        <br />
-        <button type="button" onclick="joinGame()"}>Join</button>
-    </form>
+    <!--Google client ID-->
+    <meta name="google-signin-client_id" content="352557329008-j4fb9ih06405e217hrbns901fkhlpif2.apps.googleusercontent.com">
+    <div class="card" id="signInCard">
+        <div class="card-header">
+            Sign In
+        </div>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item"><div class="g-signin2" data-onsuccess="googleSignIn" data-longtitle="true"></div></li>
+            <li class="list-group-item"><div id="guestSignInBtn" onclick="guestSignIn()">Continue as guest</div></li>
+        </ul>
+    </div>
+
+    <div id="authenticatedDiv" style="visibility: hidden">
+
+        Create or join game with <input type="text" id="usernameInput" placeholder="Enter username" />
+        <button type="button" onclick="joinGame()">Join</button>
+        <br /><br />
+        
+        <div class="card" id="profileCard">
+            <div class="card-header">
+                User Profile<button id="signOutBtn" type="button" onclick="signOut()">Sign Out</button>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">Username: <span id="usernameSpan"></span></li>
+                <li class="list-group-item">Email: <span id="emailSpan"></span></li>
+                <li class="list-group-item">Win/Loss: <span id="winLossSpan"></span></li>
+            </ul>
+        </div>
+    </div>
+
+    <div>
+        Signing in with Google allows you to choose a username and save your game statistics. 
+        Your email address will be stored for identification puposes only.<br /><br />
+
+        Guest users have access to all game functionality but no data will be stored.
+    </div>
 </div>

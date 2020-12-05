@@ -218,6 +218,7 @@ namespace Battleship.Models
         {
             dbConnection.Open();
 
+            //this query doesn't need to be parameterized because it doesn't take user input
             string commandString = "select ifnull(max(playerId), 0) + 1 into @nextId from users;" +
             "insert into users values(@nextId, concat('Guest#', @nextId), '', 0, 0);" +
             "select username from users where playerId = @nextId;";

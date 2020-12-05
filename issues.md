@@ -1,5 +1,6 @@
 ﻿# Open Issues
-[12] Allow users to place their own ships on the board
+[12] Allow users to place their own ships on the board\
+[13] Update database queries to prevent SQL injection
 
 # Resolved Issues
 [1] Display grid on main page that can be clicked to fire\

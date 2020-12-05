@@ -17,9 +17,16 @@ namespace Battleship.Models
         {
             //return true if there is a game with the given id, false otherwise
             dbConnection.Open();
-            string commandString = $"select * from ship_hitpoints where gameId = {gameId};";
-            using var comm = new MySqlCommand(commandString, dbConnection);
-            using var reader = comm.ExecuteReader();
+
+            //string commandString = $"select * from ship_hitpoints where gameId = {gameId};";
+            var comm = new MySqlCommand(null, dbConnection);
+
+            comm.CommandText = "select * from ship_hitpoints where gameId = @gameId;";
+            MySqlParameter gameIdParam = new MySqlParameter("@gameId", MySqlDbType.Int32);
+            gameIdParam.Value = gameId;
+            comm.Parameters.Add(gameIdParam);
+
+            var reader = comm.ExecuteReader();
 
             bool exists = false;
             if(reader.Read())
@@ -39,11 +46,15 @@ namespace Battleship.Models
             
             dbConnection.Open();
 
-            string commandString = $"select player1Id, player2Id from game where gameId = {gameId};";
+            //string commandString = $"select player1Id, player2Id from game where gameId = {gameId};";
 
-            using var comm = new MySqlCommand(commandString, dbConnection);
+            var comm = new MySqlCommand(null, dbConnection);
+            comm.CommandText = "select player1Id, player2Id from game where gameId = @gameId;";
+            MySqlParameter gameIdParam = new MySqlParameter("@gameId", MySqlDbType.Int32);
+            gameIdParam.Value = gameId;
+            comm.Parameters.Add(gameIdParam);
 
-            using var reader = comm.ExecuteReader();
+            var reader = comm.ExecuteReader();
 
             if( reader.Read())
             {
@@ -178,6 +189,7 @@ namespace Battleship.Models
 
             dbConnection.Open();
 
+            //this query doesn't need to be parameterized because it doesn't take user input
             string commandString = "select MAX(shipId), MAX(hitPointId) from ship_hitpoints";
 
             using var comm = new MySqlCommand(commandString, dbConnection);
@@ -216,22 +228,30 @@ namespace Battleship.Models
 
             int shipId = ids[0];
             int hitPointId = ids[1];
-            
+
+            //gameId and playerId need to be sanitized because they are taken from user input in the calling function
+            MySqlParameter gameIdParam = new MySqlParameter("@gameId", MySqlDbType.Int32);
+            gameIdParam.Value = gameId;
+
+            MySqlParameter playerIdParam = new MySqlParameter("@playerId", MySqlDbType.Int32);
+            playerIdParam.Value = playerId;
+
+            string commandString = "";
             //insert each ship into the database
             foreach (Ship s in ships)
             {
-                string commandString = $"insert into shipNames values({shipId}, \"{s.Name}\", {gameId}) as new " +
+                commandString += $"insert into shipNames values({shipId}, \"{s.Name}\", @gameId) as new " +
                     $"on duplicate key update shipName = new.shipName;\n";
 
                 //push the ship's hit points to the hitPoint table
                 foreach (int[] hp in s.HitPoints)
                 {
                     //insert each hitpoint with its player id so that there can be a seperate board for each player in a game
-                    commandString += $"insert into hitPoints values({hitPointId}, {gameId}, {playerId}, {hp[0]}, {hp[1]}, false) as new " +
+                    commandString += $"insert into hitPoints values({hitPointId}, @gameId, @playerId, {hp[0]}, {hp[1]}, false) as new " +
                         $"on duplicate key update xPos = new.xPos, yPos = new.yPos, hit = new.hit;\n";
 
                     //insert the hitpoints into the ship_hitpoints join table
-                    commandString += $"insert into ship_hitpoints values({gameId}, {shipId}, {hitPointId}) as new " +
+                    commandString += $"insert into ship_hitpoints values(@gameId, {shipId}, {hitPointId}) as new " +
                         $"on duplicate key update hitPointId = new.hitPointId;\n";
 
                     hitPointId++;
@@ -239,13 +259,14 @@ namespace Battleship.Models
 
                 }
                 shipId++;
-
-                //perform all queries with one string to avoid "database connection in use" errors
-                using var comm = new MySqlCommand(commandString, dbConnection);
-
-                using var reader = comm.ExecuteReader();
             }
             //close the database connection when finished
+            var comm = new MySqlCommand(null, dbConnection);
+            comm.CommandText = commandString;
+            comm.Parameters.Add(gameIdParam);
+            comm.Parameters.Add(playerIdParam);
+
+            var reader = comm.ExecuteReader();
             dbConnection.Close();
         }
 
@@ -285,15 +306,24 @@ namespace Battleship.Models
             //open the connection
             dbConnection.Open();
 
-            string commandString = "select ship_hitpoints.shipId, shipnames.shipName, " +
+            var comm = new MySqlCommand(null, dbConnection);
+
+            comm.CommandText = "select ship_hitpoints.shipId, shipnames.shipName, " +
                 "hitpoints.xPos, hitpoints.yPos, hitpoints.hit from shipnames " +
                 "join ship_hitPoints on ship_hitpoints.shipId = shipnames.id " +
-                $"join hitpoints on ship_hitpoints.hitPointId = hitpoints.id and hitpoints.playerId = {playerId} " +
-                $"where ship_hitpoints.gameId = {gameId};";
+                $"join hitpoints on ship_hitpoints.hitPointId = hitpoints.id and hitpoints.playerId = @playerId " +
+                $"where ship_hitpoints.gameId = @gameId;";
 
-            using var comm = new MySqlCommand(commandString, dbConnection);
+            MySqlParameter gameIdParam = new MySqlParameter("@gameId", MySqlDbType.Int32);
+            gameIdParam.Value = gameId;
 
-            using var reader = comm.ExecuteReader();
+            MySqlParameter playerIdParam = new MySqlParameter("@playerId", MySqlDbType.Int32);
+            playerIdParam.Value = playerId;
+
+            comm.Parameters.Add(gameIdParam);
+            comm.Parameters.Add(playerIdParam);
+
+            var reader = comm.ExecuteReader();
 
             Ship[] tmp = new Ship[5];
             //int indexInTmp = 0;
@@ -401,11 +431,21 @@ namespace Battleship.Models
             if (hit)
             {
                 //perform a safe update by first getting the hitpoint id to be changed
-                string commandString = $"select id into @keyvar from hitpoints where gameId = {gameId} and playerId = {playerId} " +
+
+                var comm = new MySqlCommand(null, dbConnection);
+                comm.CommandText = $"select id into @keyvar from hitpoints where gameId = @gameId and playerId = @playerId " +
                     $"and xPos = {hitPoint[0]} and yPos = {hitPoint[1]}; " +
                     $"update hitpoints set hit = 1 where id = @keyvar";
 
-                using var comm = new MySqlCommand(commandString, dbConnection);
+                MySqlParameter gameIdParam = new MySqlParameter("@gameId", MySqlDbType.Int32);
+                gameIdParam.Value = gameId;
+
+                MySqlParameter playerIdParam = new MySqlParameter("@playerId", MySqlDbType.Int32);
+                playerIdParam.Value = playerId;
+
+                comm.Parameters.Add(gameIdParam);
+                comm.Parameters.Add(playerIdParam);
+
                 using var reader = comm.ExecuteReader();
             }
 
@@ -418,9 +458,20 @@ namespace Battleship.Models
         {
             dbConnection.Open();
 
-            string commandString = $"insert into misses values({gameId}, {playerId}, {x}, {y});";
+            var comm = new MySqlCommand(null, dbConnection);
 
-            using var comm = new MySqlCommand(commandString, dbConnection);
+            comm.CommandText = $"insert into misses values(@gameId, @playerId, {x}, {y});";
+
+            MySqlParameter gameIdParam = new MySqlParameter("@gameId", MySqlDbType.Int32);
+            gameIdParam.Value = gameId;
+
+            MySqlParameter playerIdParam = new MySqlParameter("@playerId", MySqlDbType.Int32);
+            playerIdParam.Value = playerId;
+
+            comm.Parameters.Add(gameIdParam);
+            comm.Parameters.Add(playerIdParam);
+
+            
 
             comm.ExecuteReader();
 
@@ -431,11 +482,20 @@ namespace Battleship.Models
         {
             dbConnection.Open();
 
-            string commandString = $"select xPos, yPos from misses where gameId = {gameId} and playerId = {playerId};";
+            var comm = new MySqlCommand(null, dbConnection);
 
-            using var comm = new MySqlCommand(commandString, dbConnection);
+            comm.CommandText = $"select xPos, yPos from misses where gameId = @gameId and playerId = @playerId;";
 
-            using var reader = comm.ExecuteReader();
+            MySqlParameter gameIdParam = new MySqlParameter("@gameId", MySqlDbType.Int32);
+            gameIdParam.Value = gameId;
+
+            MySqlParameter playerIdParam = new MySqlParameter("@playerId", MySqlDbType.Int32);
+            playerIdParam.Value = playerId;
+
+            comm.Parameters.Add(gameIdParam);
+            comm.Parameters.Add(playerIdParam);
+
+            var reader = comm.ExecuteReader();
 
             List<int[]> res = new List<int[]>();
 
@@ -451,12 +511,14 @@ namespace Battleship.Models
         public static bool myTurn(MySqlConnection dbConnection, int gameId, int playerId)
         {
             dbConnection.Open();
+            
+            var comm = new MySqlCommand(null, dbConnection);
+            comm.CommandText = $"select currentPlayer from game where gameId = @gameId;";
+            MySqlParameter gameIdParam = new MySqlParameter("@gameId", MySqlDbType.Int32);
+            gameIdParam.Value = gameId;
+            comm.Parameters.Add(gameIdParam);
 
-            string commandString = $"select currentPlayer from game where gameId = {gameId};";
-
-            using var comm = new MySqlCommand(commandString, dbConnection);
-
-            using var reader = comm.ExecuteReader();
+            var reader = comm.ExecuteReader();
 
             if( reader.Read())
             {
@@ -475,12 +537,15 @@ namespace Battleship.Models
         {
             dbConnection.Open();
 
-            string commandString = $"select currentPlayer into @cp from game where gameId = {gameId};" +
-                $"select player1Id into @p1 from game where gameId = {gameId};" +
-                $"select player2Id into @p2 from game where gameId = {gameId};" +
-                $"update game set currentPlayer = if (@cp = @p1, @p2, @p1 ) where gameId = {gameId};";
+            var comm = new MySqlCommand(null, dbConnection);
+            comm.CommandText = $"select currentPlayer into @cp from game where gameId = @gameId;" +
+                $"select player1Id into @p1 from game where gameId = @gameId;" +
+                $"select player2Id into @p2 from game where gameId = @gameId;" +
+                $"update game set currentPlayer = if (@cp = @p1, @p2, @p1 ) where gameId = @gameId;";
 
-            using var comm = new MySqlCommand(commandString, dbConnection);
+            MySqlParameter gameIdParam = new MySqlParameter("@gameId", MySqlDbType.Int32);
+            gameIdParam.Value = gameId;
+            comm.Parameters.Add(gameIdParam);
 
             comm.ExecuteReader();
 
@@ -490,12 +555,14 @@ namespace Battleship.Models
         public static bool isVictory(MySqlConnection dbConnection, int gameId)
         {
             dbConnection.Open();
+            var comm = new MySqlCommand(null, dbConnection);
 
-            string commandString = $"select victory from game where gameId = {gameId};";
+            comm.CommandText = $"select victory from game where gameId =  @gameId;";
+            MySqlParameter gameIdParam = new MySqlParameter("@gameId", MySqlDbType.Int32);
+            gameIdParam.Value = gameId;
+            comm.Parameters.Add(gameIdParam);
 
-            using var comm = new MySqlCommand(commandString, dbConnection);
-
-            using var reader = comm.ExecuteReader();
+            var reader = comm.ExecuteReader();
 
             bool result = false;
 
@@ -512,10 +579,13 @@ namespace Battleship.Models
         public static void setVictory(MySqlConnection dbConnection, int gameId, bool victory)
         {
             dbConnection.Open();
+            var comm = new MySqlCommand(null, dbConnection);
+            comm.CommandText = $"update game set victory = {victory} where gameId = @gameId;";
+            MySqlParameter gameIdParam = new MySqlParameter("@gameId", MySqlDbType.Int32);
+            gameIdParam.Value = gameId;
+            comm.Parameters.Add(gameIdParam);
 
-            string commandString = $"update game set victory = {victory} where gameId = {gameId};";
-
-            using var comm = new MySqlCommand(commandString, dbConnection);
+            
 
             comm.ExecuteReader();
 
@@ -525,11 +595,13 @@ namespace Battleship.Models
         public static void deleteGame(MySqlConnection dbConnection, int gameId)
         {
             dbConnection.Open();
-      
-            //only delete games that have been won so that concurrent uses of this function do not cause problems
-            string commandString = $"delete from game where gameId = {gameId} and victory = true;";
 
-            using var comm = new MySqlCommand(commandString, dbConnection);
+            //only delete games that have been won so that concurrent uses of this function do not cause problems
+            var comm = new MySqlCommand(null, dbConnection);
+            comm.CommandText = $"delete from game where gameId = @gameId and victory = true;";
+            MySqlParameter gameIdParam = new MySqlParameter("@gameId", MySqlDbType.Int32);
+            gameIdParam.Value = gameId;
+            comm.Parameters.Add(gameIdParam);
 
             comm.ExecuteReader();
 
@@ -540,10 +612,13 @@ namespace Battleship.Models
         {
             dbConnection.Open();
 
-            var comm = new MySqlCommand(dbConnection, null);
+            var comm = new MySqlCommand(null, dbConnection);
 
-            comm.CommandText = won ? $"update users set wins = wins + 1 where playerId = {playerId};" :
-                $"update users set losses = losses + 1 where playerId = {playerId};";
+            comm.CommandText = won ? $"update users set wins = wins + 1 where playerId = @playerId;" :
+                $"update users set losses = losses + 1 where playerId = @playerId;";
+            MySqlParameter playerIdParam = new MySqlParameter("@playerId", MySqlDbType.Int32);
+            playerIdParam.Value = playerId;
+            comm.Parameters.Add(playerIdParam);
 
             comm.ExecuteReader();
 

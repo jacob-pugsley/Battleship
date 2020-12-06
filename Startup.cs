@@ -32,7 +32,7 @@ namespace Battleship
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(10);
             });
-
+            
             services.AddTransient<MySqlConnection>(_ => new MySqlConnection(Configuration["ConnectionStrings:Default"]));
         }
 

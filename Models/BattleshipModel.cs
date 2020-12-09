@@ -18,10 +18,10 @@ namespace Battleship.Models
             //return true if there is a game with the given id, false otherwise
             dbConnection.Open();
 
-            //string commandString = $"select * from ship_hitpoints where gameId = {gameId};";
+            //string commandString = $"select * from ship_hitPoints where gameId = {gameId};";
             var comm = new MySqlCommand(null, dbConnection);
 
-            comm.CommandText = "select * from ship_hitpoints where gameId = @gameId;";
+            comm.CommandText = "select * from ship_hitPoints where gameId = @gameId;";
             MySqlParameter gameIdParam = new MySqlParameter("@gameId", MySqlDbType.Int32);
             gameIdParam.Value = gameId;
             comm.Parameters.Add(gameIdParam);
@@ -109,7 +109,7 @@ namespace Battleship.Models
             foreach (Ship s in ships)
             {
                 //pick random locations until the ship can be placed
-                //accounting for all of its hitpoints
+                //accounting for all of its hitPoints
                 int hitPoints = s.HitPoints.GetLength(0);
                 while (true)
                 {
@@ -190,7 +190,7 @@ namespace Battleship.Models
             dbConnection.Open();
 
             //this query doesn't need to be parameterized because it doesn't take user input
-            string commandString = "select MAX(shipId), MAX(hitPointId) from ship_hitpoints";
+            string commandString = "select MAX(shipId), MAX(hitPointId) from ship_hitPoints";
 
             using var comm = new MySqlCommand(commandString, dbConnection);
             using var reader = comm.ExecuteReader();
@@ -240,19 +240,20 @@ namespace Battleship.Models
             //insert each ship into the database
             foreach (Ship s in ships)
             {
-                commandString += $"insert into shipNames values({shipId}, \"{s.Name}\", @gameId) as new " +
-                    $"on duplicate key update shipName = new.shipName;\n";
+
+                commandString += $"insert into shipNames values({shipId}, \"{s.Name}\", @gameId) " +
+                    $"on duplicate key update shipName = values(shipName);";
 
                 //push the ship's hit points to the hitPoint table
                 foreach (int[] hp in s.HitPoints)
                 {
-                    //insert each hitpoint with its player id so that there can be a seperate board for each player in a game
-                    commandString += $"insert into hitPoints values({hitPointId}, @gameId, @playerId, {hp[0]}, {hp[1]}, false) as new " +
-                        $"on duplicate key update xPos = new.xPos, yPos = new.yPos, hit = new.hit;\n";
+                    //insert each hitPoint with its player id so that there can be a seperate board for each player in a game
+                    commandString += $"insert into hitPoints values({hitPointId}, @gameId, @playerId, {hp[0]}, {hp[1]}, false) " +
+                        $"on duplicate key update xPos = values(xPos), yPos = values(yPos), hit = values(hit);";
 
-                    //insert the hitpoints into the ship_hitpoints join table
-                    commandString += $"insert into ship_hitpoints values(@gameId, {shipId}, {hitPointId}) as new " +
-                        $"on duplicate key update hitPointId = new.hitPointId;\n";
+                    //insert the hitPoints into the ship_hitPoints join table
+                    commandString += $"insert into ship_hitPoints values(@gameId, {shipId}, {hitPointId}) " +
+                        $"on duplicate key update hitPointId = values(hitPointId);";
 
                     hitPointId++;
 
@@ -308,11 +309,11 @@ namespace Battleship.Models
 
             var comm = new MySqlCommand(null, dbConnection);
 
-            comm.CommandText = "select ship_hitpoints.shipId, shipnames.shipName, " +
-                "hitpoints.xPos, hitpoints.yPos, hitpoints.hit from shipnames " +
-                "join ship_hitPoints on ship_hitpoints.shipId = shipnames.id " +
-                $"join hitpoints on ship_hitpoints.hitPointId = hitpoints.id and hitpoints.playerId = @playerId " +
-                $"where ship_hitpoints.gameId = @gameId;";
+            comm.CommandText = "select ship_hitPoints.shipId, shipNames.shipName, " +
+                "hitPoints.xPos, hitPoints.yPos, hitPoints.hit from shipNames " +
+                "join ship_hitPoints on ship_hitPoints.shipId = shipNames.id " +
+                $"join hitPoints on ship_hitPoints.hitPointId = hitPoints.id and hitPoints.playerId = @playerId " +
+                $"where ship_hitPoints.gameId = @gameId;";
 
             MySqlParameter gameIdParam = new MySqlParameter("@gameId", MySqlDbType.Int32);
             gameIdParam.Value = gameId;
@@ -360,7 +361,7 @@ namespace Battleship.Models
                 diList[indexInTmp].Add(reader.GetInt32(4) != 0);
             }
 
-            //update the sunk status and hitpoints of all ships
+            //update the sunk status and hitPoints of all ships
             //if the first ship is null, the list is empty
             if (tmp[0] == null)
             {
@@ -430,12 +431,12 @@ namespace Battleship.Models
             //update database
             if (hit)
             {
-                //perform a safe update by first getting the hitpoint id to be changed
+                //perform a safe update by first getting the hitPoint id to be changed
 
                 var comm = new MySqlCommand(null, dbConnection);
-                comm.CommandText = $"select id into @keyvar from hitpoints where gameId = @gameId and playerId = @playerId " +
+                comm.CommandText = $"select id into @keyvar from hitPoints where gameId = @gameId and playerId = @playerId " +
                     $"and xPos = {hitPoint[0]} and yPos = {hitPoint[1]}; " +
-                    $"update hitpoints set hit = 1 where id = @keyvar";
+                    $"update hitPoints set hit = 1 where id = @keyvar";
 
                 MySqlParameter gameIdParam = new MySqlParameter("@gameId", MySqlDbType.Int32);
                 gameIdParam.Value = gameId;

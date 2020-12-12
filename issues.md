@@ -1,6 +1,6 @@
 ﻿# Open Issues
 [12] Allow users to place their own ships on the board\
-[13] Update database queries to prevent SQL injection
+[14] Convert front end components to react
 
 # Resolved Issues
 [1] Display grid on main page that can be clicked to fire\
@@ -13,4 +13,5 @@
 [8] Make each player attack the other player's board\
 [9] Create login page that uses Google APIs for OAuth2 authentication\
 [10] Add user profile pages that allow them to start games\
-[11] Add logic to update user profiles with win/loss information
+[11] Add logic to update user profiles with win/loss information\
+[13] Update database queries to prevent SQL injection
